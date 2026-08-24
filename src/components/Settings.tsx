@@ -7,6 +7,8 @@ export default function Settings({ session }: { session: Session }) {
   const [displayName, setDisplayName] = useState('');
   const [role, setRole] = useState('팀원');
   const [loading, setLoading] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [isPasswordLoading, setIsPasswordLoading] = useState(false);
 
   useEffect(() => {
     fetchProfile();
@@ -39,6 +41,22 @@ export default function Settings({ session }: { session: Session }) {
     await supabase.auth.signOut();
   };
 
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPassword) return;
+    
+    setIsPasswordLoading(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setIsPasswordLoading(false);
+
+    if (error) {
+      await Dialog.alert({ title: '오류', message: '비밀번호 변경에 실패했습니다: ' + error.message });
+    } else {
+      await Dialog.alert({ title: '성공', message: '비밀번호가 성공적으로 변경되었습니다.' });
+      setNewPassword('');
+    }
+  };
+
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700/50 p-6 flex flex-col min-h-[400px] animate-in fade-in duration-200">
       <div className="flex justify-between items-center mb-6">
@@ -66,6 +84,25 @@ export default function Settings({ session }: { session: Session }) {
           {loading ? '저장 중...' : '프로필 저장'}
         </button>
       </form>
+
+      <div className="mt-8 pt-6 border-t border-gray-100 dark:border-slate-700/50">
+        <h3 className="text-lg font-bold text-gray-900 dark:text-slate-50 mb-4">비밀번호 변경</h3>
+        <form onSubmit={handleUpdatePassword} className="flex flex-col gap-4">
+          <div>
+            <input 
+              type="password" 
+              value={newPassword} 
+              onChange={(e) => setNewPassword(e.target.value)} 
+              placeholder="새 비밀번호 입력" 
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" 
+              minLength={6}
+            />
+          </div>
+          <button type="submit" disabled={isPasswordLoading || !newPassword} className="w-full bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400 font-bold py-4 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all disabled:opacity-50">
+            {isPasswordLoading ? '변경 중...' : '비밀번호 변경하기'}
+          </button>
+        </form>
+      </div>
 
       <div className="mt-8 pt-6 border-t border-gray-100 dark:border-slate-700/50">
         <button 

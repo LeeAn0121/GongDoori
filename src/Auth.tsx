@@ -31,7 +31,14 @@ export default function Auth() {
     }
     setLoading(true)
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email)
+      const isNative = Capacitor.isNativePlatform();
+      const redirectUrl = isNative 
+        ? 'gongdoori://login-callback'
+        : window.location.origin;
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: redirectUrl
+      })
       if (error) throw error
       await Dialog.alert({ title: '성공', message: '비밀번호 재설정 메일이 전송되었습니다. 이메일함을 확인해주세요.' })
     } catch (error: any) {
