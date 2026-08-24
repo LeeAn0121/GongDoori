@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import Calendar from 'react-calendar'
-import { Plus, MapPin, DollarSign, AlignLeft, Trash2, Edit2, Calendar as CalendarIcon, MoreVertical, Moon, Sun } from 'lucide-react'
+import { Calendar } from 'react-calendar'
+import { Plus, MapPin, DollarSign, AlignLeft, Trash2, Edit2, Calendar as CalendarIcon, MoreVertical, BarChart2, Settings as SettingsIcon } from 'lucide-react'
 import { format } from 'date-fns'
 import { supabase } from './supabaseClient'
 import type { Session } from '@supabase/supabase-js'
@@ -9,15 +9,22 @@ import { Browser } from '@capacitor/browser'
 import { Dialog } from '@capacitor/dialog'
 import Auth from './Auth'
 import Stats from './components/Stats'
-import TeamManager from './components/TeamManager'
 import Settings from './components/Settings'
+import SiteManager from './components/SiteManager'
+import SettlementManager from './components/SettlementManager'
 import 'react-calendar/dist/Calendar.css'
 
 type WageRecord = {
   id: string
   date: string
   siteName: string
+  taskContent: string
   amount: number
+  taxDeduction: boolean
+  poomsu: number
+  expenses: number
+  color: string
+  status: '미수금' | '완료'
   memo: string
 }
 
@@ -26,27 +33,20 @@ function MainApp({ session }: { session: Session }) {
   const [activeStartDate, setActiveStartDate] = useState<Date | null>(new Date())
   const [records, setRecords] = useState<WageRecord[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [currentView, setCurrentView] = useState<'home' | 'stats' | 'team' | 'settings'>('home')
+  const [currentView, setCurrentView] = useState<'calendar' | 'site' | 'settlement' | 'stats' | 'settings'>('calendar')
   
   // New record form state
   const [siteName, setSiteName] = useState('')
+  const [taskContent, setTaskContent] = useState('')
   const [amount, setAmount] = useState('')
+  const [taxDeduction, setTaxDeduction] = useState(false)
+  const [poomsu, setPoomsu] = useState(1.0)
+  const [expenses, setExpenses] = useState('')
+  const [color, setColor] = useState('#3B82F6')
   const [memo, setMemo] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [isSchedule, setIsSchedule] = useState(false)
   const [expandedRecordId, setExpandedRecordId] = useState<string | null>(null)
-  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'))
-
-  const toggleTheme = () => {
-    if (isDark) {
-      document.documentElement.classList.remove('dark')
-      setIsDark(false)
-    } else {
-      document.documentElement.classList.add('dark')
-      setIsDark(true)
-    }
-  }
 
   const selectedDateStr = format(date, 'yyyy-MM-dd')
   const selectedRecords = records.filter(r => r.date === selectedDateStr)
@@ -71,8 +71,14 @@ function MainApp({ session }: { session: Session }) {
         id: d.id,
         date: d.date,
         siteName: d.site_name,
+        taskContent: d.task_content || '',
         amount: d.amount,
-        memo: d.memo
+        taxDeduction: d.tax_deduction || false,
+        poomsu: d.poomsu || 1.0,
+        expenses: d.expenses || 0,
+        color: d.color || '#3B82F6',
+        status: d.status || '미수금',
+        memo: d.memo || ''
       })))
     }
   }
@@ -86,7 +92,12 @@ function MainApp({ session }: { session: Session }) {
       user_id: session.user.id,
       date: selectedDateStr,
       site_name: siteName,
+      task_content: taskContent,
       amount: isSchedule ? 0 : parseInt(amount, 10),
+      tax_deduction: taxDeduction,
+      poomsu,
+      expenses: expenses ? parseInt(expenses, 10) : 0,
+      color,
       memo
     }
 
@@ -96,7 +107,17 @@ function MainApp({ session }: { session: Session }) {
         await Dialog.alert({ title: '오류', message: '수정 중 오류가 발생했습니다: ' + error.message })
         return
       }
-      setRecords(records.map(r => r.id === editingId ? { ...r, siteName: recordData.site_name, amount: recordData.amount, memo: recordData.memo } : r))
+      setRecords(records.map(r => r.id === editingId ? { 
+        ...r, 
+        siteName: recordData.site_name, 
+        taskContent: recordData.task_content,
+        amount: recordData.amount, 
+        taxDeduction: recordData.tax_deduction,
+        poomsu: recordData.poomsu,
+        expenses: recordData.expenses,
+        color: recordData.color,
+        memo: recordData.memo 
+      } : r))
     } else {
       const { data, error } = await supabase.from('wage_records').insert([recordData]).select()
       if (error) {
@@ -105,7 +126,19 @@ function MainApp({ session }: { session: Session }) {
       }
       if (data && data.length > 0) {
         const d = data[0]
-        setRecords([...records, { id: d.id, date: d.date, siteName: d.site_name, amount: d.amount, memo: d.memo }])
+        setRecords([...records, { 
+          id: d.id, 
+          date: d.date, 
+          siteName: d.site_name, 
+          taskContent: d.task_content || '',
+          amount: d.amount, 
+          taxDeduction: d.tax_deduction || false,
+          poomsu: d.poomsu || 1.0,
+          expenses: d.expenses || 0,
+          color: d.color || '#3B82F6',
+          status: d.status || '미수금',
+          memo: d.memo || '' 
+        }])
       }
     }
     
@@ -129,11 +162,25 @@ function MainApp({ session }: { session: Session }) {
     }
   }
 
+  const handleUpdateStatus = async (id: string, status: '미수금' | '완료') => {
+    const { error } = await supabase.from('wage_records').update({ status }).eq('id', id)
+    if (error) {
+      await Dialog.alert({ title: '오류', message: '상태 업데이트 중 오류가 발생했습니다.' })
+    } else {
+      setRecords(records.map(r => r.id === id ? { ...r, status } : r))
+    }
+  }
+
   const openEdit = (record: WageRecord) => {
     setEditingId(record.id)
-    setIsSchedule(record.amount === 0)
+    setIsSchedule(record.amount === 0 && !record.poomsu)
     setSiteName(record.siteName)
+    setTaskContent(record.taskContent)
     setAmount(record.amount === 0 ? '' : record.amount.toString())
+    setTaxDeduction(record.taxDeduction)
+    setPoomsu(record.poomsu)
+    setExpenses(record.expenses === 0 ? '' : record.expenses.toString())
+    setColor(record.color)
     setMemo(record.memo || '')
     setIsModalOpen(true)
   }
@@ -142,7 +189,12 @@ function MainApp({ session }: { session: Session }) {
     setEditingId(null)
     setIsSchedule(false)
     setSiteName('')
+    setTaskContent('')
     setAmount('')
+    setTaxDeduction(false)
+    setPoomsu(1.0)
+    setExpenses('')
+    setColor('#3B82F6')
     setMemo('')
   }
 
@@ -156,7 +208,11 @@ function MainApp({ session }: { session: Session }) {
         const totalAmount = dayRecords.reduce((sum, r) => sum + r.amount, 0)
         return (
           <div className="flex flex-col items-center mt-1">
-            <div className="w-1.5 h-1.5 bg-blue-50 dark:bg-blue-600 dark:bg-orange-500/100 rounded-full mb-0.5"></div>
+            <div className="flex gap-0.5 mb-0.5">
+              {dayRecords.map(r => (
+                <div key={r.id} className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: r.color || '#3B82F6' }}></div>
+              ))}
+            </div>
             <span className="text-[10px] text-blue-600 dark:text-orange-400 font-semibold leading-tight">
               {(totalAmount / 10000).toFixed(0)}만
             </span>
@@ -174,15 +230,10 @@ function MainApp({ session }: { session: Session }) {
           <img src="/app_icon_v2.jpg" alt="공돌이" className="w-8 h-8 rounded-lg shadow-sm" />
           공돌이
         </h1>
-        <div className="flex gap-3">
-          <button onClick={() => setIsMenuOpen(true)} className="px-3 py-2 bg-gray-900 dark:bg-slate-800 rounded-xl shadow-sm text-sm font-bold text-white dark:text-slate-100 hover:bg-black dark:hover:bg-slate-700 transition-colors cursor-pointer border border-transparent dark:border-slate-700">
-            메뉴
-          </button>
-        </div>
       </header>
       
-      <main className="w-full max-w-md px-4 flex flex-col gap-4">
-        {currentView === 'home' && (
+      <main className="w-full max-w-md px-4 flex flex-col gap-4 pb-28">
+        {currentView === 'calendar' && (
           <>
             {/* Calendar Card */}
             <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-200 dark:border-slate-700/50 p-4 overflow-hidden relative">
@@ -245,7 +296,7 @@ function MainApp({ session }: { session: Session }) {
           ) : (
             <div className="flex flex-col gap-3">
               {selectedRecords.map(record => {
-                const isItemSchedule = record.amount === 0
+                const isItemSchedule = record.amount === 0 && !record.poomsu
                 const isExpanded = expandedRecordId === record.id
                 return (
                   <div key={record.id} className="bg-gray-50 dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-gray-200 dark:border-slate-700/50 flex flex-col relative overflow-hidden shadow-sm">
@@ -267,9 +318,10 @@ function MainApp({ session }: { session: Session }) {
                           </button>
                         </div>
                       </div>
-                      {record.memo && (
-                        <div className="flex items-start gap-2 text-gray-600 dark:text-slate-300 text-sm mt-1.5 pr-8 leading-relaxed">
-                          <p>{record.memo}</p>
+                      {(record.taskContent || record.memo) && (
+                        <div className="flex flex-col text-gray-600 dark:text-slate-300 text-sm mt-1.5 pr-8 leading-relaxed">
+                          {record.taskContent && <p className="font-semibold text-gray-700 dark:text-slate-200">[{record.taskContent}]</p>}
+                          {record.memo && <p>{record.memo}</p>}
                         </div>
                       )}
                     </div>
@@ -303,14 +355,63 @@ function MainApp({ session }: { session: Session }) {
 
         {currentView === 'stats' && <Stats records={records} />}
 
-        {currentView === 'team' && <TeamManager session={session} />}
-
         {currentView === 'settings' && <Settings session={session} />}
+
+        {currentView === 'site' && <SiteManager records={records} setCurrentView={setCurrentView} />}
+
+        {currentView === 'settlement' && <SettlementManager records={records} setCurrentView={setCurrentView} onUpdateStatus={handleUpdateStatus} />}
+
+
       </main>
 
+      {/* Bottom Navigation Bar */}
+      <nav className="fixed bottom-0 w-full max-w-md bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 pb-[env(safe-area-inset-bottom)] z-40 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+        <div className="flex justify-around items-center h-16">
+          <button 
+            onClick={() => setCurrentView('calendar')} 
+            className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${currentView === 'calendar' ? 'text-blue-600 dark:text-orange-400' : 'text-gray-400 dark:text-slate-500 hover:text-gray-600'}`}
+          >
+            <CalendarIcon size={24} className={currentView === 'calendar' ? 'fill-blue-50 dark:fill-orange-900/30' : ''} />
+            <span className="text-[10px] font-bold">캘린더</span>
+          </button>
+          
+          <button 
+            onClick={() => setCurrentView('site')} 
+            className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${currentView === 'site' ? 'text-blue-600 dark:text-orange-400' : 'text-gray-400 dark:text-slate-500 hover:text-gray-600'}`}
+          >
+            <MapPin size={24} className={currentView === 'site' ? 'fill-blue-50 dark:fill-orange-900/30' : ''} />
+            <span className="text-[10px] font-bold">작업기록</span>
+          </button>
+          
+          <button 
+            onClick={() => setCurrentView('settlement')} 
+            className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${currentView === 'settlement' ? 'text-blue-600 dark:text-orange-400' : 'text-gray-400 dark:text-slate-500 hover:text-gray-600'}`}
+          >
+            <DollarSign size={24} className={currentView === 'settlement' ? 'fill-blue-50 dark:fill-orange-900/30' : ''} />
+            <span className="text-[10px] font-bold">내 지갑</span>
+          </button>
+          
+          <button 
+            onClick={() => setCurrentView('stats')} 
+            className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${currentView === 'stats' ? 'text-blue-600 dark:text-orange-400' : 'text-gray-400 dark:text-slate-500 hover:text-gray-600'}`}
+          >
+            <BarChart2 size={24} className={currentView === 'stats' ? 'fill-blue-50 dark:fill-orange-900/30' : ''} />
+            <span className="text-[10px] font-bold">리포트</span>
+          </button>
+
+          <button 
+            onClick={() => setCurrentView('settings')} 
+            className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${currentView === 'settings' ? 'text-blue-600 dark:text-orange-400' : 'text-gray-400 dark:text-slate-500 hover:text-gray-600'}`}
+          >
+            <SettingsIcon size={24} className={currentView === 'settings' ? 'fill-blue-50 dark:fill-orange-900/30' : ''} />
+            <span className="text-[10px] font-bold">내 정보</span>
+          </button>
+        </div>
+      </nav>
+
       {/* Floating Action Button (Only on home) */}
-      {currentView === 'home' && (
-        <div className="fixed bottom-6 w-full max-w-md px-4 pointer-events-none flex justify-end z-20">
+      {currentView === 'calendar' && (
+        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] w-full max-w-md px-4 pointer-events-none flex justify-end z-20">
           <button 
             onClick={() => { resetForm(); setIsModalOpen(true); }}
             className="w-14 h-14 bg-blue-600 dark:bg-orange-500 text-white rounded-full shadow-lg shadow-blue-200 dark:shadow-orange-900/50 flex items-center justify-center pointer-events-auto hover:bg-blue-700 dark:bg-orange-600 active:scale-95 transition-all cursor-pointer"
@@ -358,21 +459,90 @@ function MainApp({ session }: { session: Session }) {
               </div>
               
               {!isSchedule && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">일당 금액</label>
-                  <div className="relative">
-                    <DollarSign size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-900 dark:text-gray-400 dark:text-slate-500" />
-                    <input 
-                      type="number" 
-                      required={!isSchedule}
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      placeholder="예: 180000" 
-                      className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:bg-slate-800 transition-all"
-                    />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-slate-400 font-medium">원</span>
+                <>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">작업 내용 (선택)</label>
+                    <div className="relative">
+                      <AlignLeft size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-900 dark:text-gray-400 dark:text-slate-500" />
+                      <input 
+                        type="text" 
+                        value={taskContent}
+                        onChange={(e) => setTaskContent(e.target.value)}
+                        placeholder="예: 목공 마감, 창호 설치" 
+                        className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:bg-slate-800 transition-all"
+                      />
+                    </div>
                   </div>
-                </div>
+
+                  <div className="flex gap-4">
+                    <div className="flex-1">
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">일당 (원)</label>
+                      <div className="relative">
+                        <DollarSign size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-900 dark:text-gray-400 dark:text-slate-500" />
+                        <input 
+                          type="number" 
+                          required
+                          value={amount}
+                          onChange={(e) => setAmount(e.target.value)}
+                          placeholder="예: 180000" 
+                          className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:bg-slate-800 transition-all"
+                        />
+                      </div>
+                    </div>
+                    <div className="w-24">
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">품수</label>
+                      <select 
+                        value={poomsu} 
+                        onChange={(e) => setPoomsu(Number(e.target.value))}
+                        className="w-full px-3 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:bg-slate-800 transition-all appearance-none text-center"
+                      >
+                        <option value={1.0}>1품</option>
+                        <option value={0.5}>0.5품</option>
+                        <option value={1.5}>1.5품</option>
+                        <option value={2.0}>2품</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <label className="flex items-center gap-2 cursor-pointer mt-[-4px]">
+                    <input 
+                      type="checkbox" 
+                      checked={taxDeduction} 
+                      onChange={(e) => setTaxDeduction(e.target.checked)}
+                      className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600"
+                    />
+                    <span className="text-sm font-medium text-gray-600 dark:text-slate-400">인적공제 3.3% 공제 후 받음</span>
+                  </label>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">경비 (선택)</label>
+                    <div className="relative">
+                      <Plus size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-900 dark:text-gray-400 dark:text-slate-500" />
+                      <input 
+                        type="number" 
+                        value={expenses}
+                        onChange={(e) => setExpenses(e.target.value)}
+                        placeholder="예: 식대, 자재비 등 (3.3% 공제 제외)" 
+                        className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:bg-slate-800 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">달력 색상</label>
+                    <div className="flex gap-3">
+                      {['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6'].map(c => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => setColor(c)}
+                          className={`w-8 h-8 rounded-full ${color === c ? 'ring-2 ring-offset-2 ring-gray-900 dark:ring-white dark:ring-offset-slate-800' : ''}`}
+                          style={{ backgroundColor: c }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </>
               )}
               
               <div>
@@ -400,49 +570,7 @@ function MainApp({ session }: { session: Session }) {
         </div>
       )}
 
-      {/* Slide-out Menu Overlay */}
-      {isMenuOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end">
-          <div className="absolute inset-0 bg-black/40 dark:bg-black/70 backdrop-blur-sm" onClick={() => setIsMenuOpen(false)}></div>
-          <div className="relative w-72 bg-white dark:bg-slate-800 h-full shadow-2xl p-6 pt-[calc(env(safe-area-inset-top)+2rem)] flex flex-col animate-in slide-in-from-right duration-200">
-            <div className="flex justify-between items-center mb-10">
-              <h2 className="text-2xl font-extrabold text-gray-900 dark:text-slate-50">전체 메뉴</h2>
-              <button onClick={() => setIsMenuOpen(false)} className="px-3 py-2 bg-gray-100 dark:bg-slate-700 rounded-xl text-sm font-bold text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-600">
-                닫기
-              </button>
-            </div>
-            
-            <nav className="flex flex-col gap-3 flex-1">
-              <button onClick={() => { setCurrentView('home'); setIsMenuOpen(false); }} className={`p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-900 text-left font-bold text-lg transition-colors cursor-pointer border border-transparent ${currentView === 'home' ? 'bg-blue-50 dark:bg-slate-900 border-blue-200 dark:border-slate-700 text-blue-700 dark:text-slate-100' : 'text-gray-700 dark:text-slate-300'}`}>
-                홈 (달력)
-              </button>
-              <button onClick={() => { setCurrentView('stats'); setIsMenuOpen(false); }} className={`p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-900 text-left font-bold text-lg transition-colors cursor-pointer border border-transparent ${currentView === 'stats' ? 'bg-blue-50 dark:bg-slate-900 border-blue-200 dark:border-slate-700 text-blue-700 dark:text-slate-100' : 'text-gray-700 dark:text-slate-300'}`}>
-                월별 통계
-              </button>
-              <button onClick={() => { setCurrentView('team'); setIsMenuOpen(false); }} className={`p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-900 text-left font-bold text-lg transition-colors cursor-pointer border border-transparent ${currentView === 'team' ? 'bg-blue-50 dark:bg-slate-900 border-blue-200 dark:border-slate-700 text-blue-700 dark:text-slate-100' : 'text-gray-700 dark:text-slate-300'}`}>
-                팀 및 크루 관리
-              </button>
-              <button onClick={() => { setCurrentView('settings'); setIsMenuOpen(false); }} className={`p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-900 text-left font-bold text-lg transition-colors cursor-pointer border border-transparent ${currentView === 'settings' ? 'bg-blue-50 dark:bg-slate-900 border-blue-200 dark:border-slate-700 text-blue-700 dark:text-slate-100' : 'text-gray-700 dark:text-slate-300'}`}>
-                내 설정
-              </button>
-            </nav>
-
-            <div className="mt-auto flex flex-col gap-3">
-              <button onClick={toggleTheme} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-900 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
-                <span className="text-sm font-bold text-gray-700 dark:text-slate-300">
-                  {isDark ? '라이트 모드로 보기' : '다크 모드로 보기'}
-                </span>
-                {isDark ? <Sun size={20} className="text-orange-400" /> : <Moon size={20} className="text-blue-600" />}
-              </button>
-
-              <div className="p-4 bg-gray-50 dark:bg-slate-900 rounded-xl">
-                <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">로그인된 계정</p>
-                <p className="text-sm font-bold text-gray-800 dark:text-slate-100 break-all">{session.user.email}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Add Record Modal Ends */}
     </div>
   )
 }
