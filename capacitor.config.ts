@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.yourdomain.carpenterapp',
+  appId: 'com.jongwook.gondoori',
   appName: '공돌이',
   webDir: 'dist'
 };

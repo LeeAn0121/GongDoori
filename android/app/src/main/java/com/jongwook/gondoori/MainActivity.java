@@ -1,4 +1,4 @@
-package com.yourdomain.carpenterapp;
+package com.jongwook.gondoori;
 
 import com.getcapacitor.BridgeActivity;
 
