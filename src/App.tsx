@@ -271,30 +271,15 @@ function MainApp({ session }: { session: Session }) {
               {/* Dashboard Summary Card */}
               <div className="bg-gradient-to-br from-blue-600 to-blue-800 dark:from-slate-800 dark:to-slate-900 rounded-3xl p-6 mb-4 shadow-[0_8px_30px_rgb(37,99,235,0.2)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] text-white relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
-                <div className="relative z-10">
-                  <p className="text-blue-100 dark:text-gray-400 font-semibold mb-1 text-sm">{format(activeStartDate || date, 'yyyy년 M월')} 총 수입</p>
+                <div className="relative z-10 flex flex-col justify-center items-center py-4">
+                  <p className="text-blue-100 dark:text-gray-400 font-semibold mb-2 text-base">{format(activeStartDate || date, 'yyyy년 M월')} 총 수입</p>
                   <div className="flex items-end gap-2">
-                    <h2 className="text-4xl font-extrabold tracking-tight">
+                    <h2 className="text-5xl font-extrabold tracking-tight">
                       {records
                         .filter(r => r.date.startsWith(format(activeStartDate || date, 'yyyy-MM')))
                         .reduce((sum, r) => sum + r.amount, 0).toLocaleString()}
                     </h2>
-                    <span className="text-lg font-bold text-blue-200 dark:text-gray-500 mb-1">원</span>
-                  </div>
-                  
-                  <div className="flex gap-3 mt-6">
-                    <button 
-                      onClick={() => { resetForm(); setIsSchedule(false); setIsModalOpen(true); }}
-                      className="flex-1 bg-white dark:bg-blue-600 text-blue-600 dark:text-white py-3 rounded-2xl font-extrabold text-sm shadow-sm hover:bg-gray-50 dark:hover:bg-blue-500 active:scale-95 transition-all flex items-center justify-center gap-1.5"
-                    >
-                      <Plus size={18} strokeWidth={3} /> 일당 기록
-                    </button>
-                    <button 
-                      onClick={() => { resetForm(); setIsSchedule(true); setIsModalOpen(true); }}
-                      className="flex-1 bg-blue-700/50 dark:bg-slate-700 text-white py-3 rounded-2xl font-extrabold text-sm shadow-sm hover:bg-blue-700/70 dark:hover:bg-slate-600 active:scale-95 transition-all flex items-center justify-center gap-1.5 backdrop-blur-md"
-                    >
-                      <CalendarIcon size={18} strokeWidth={2.5} /> 일정 메모
-                    </button>
+                    <span className="text-xl font-bold text-blue-200 dark:text-gray-500 mb-1.5">원</span>
                   </div>
                 </div>
               </div>
@@ -367,10 +352,26 @@ function MainApp({ session }: { session: Session }) {
                         총 {selectedRecords.reduce((sum, r) => sum + r.amount, 0).toLocaleString()}원
                       </span>
                     )}
-                    <button onClick={() => setIsDailyDetailOpen(false)} className="p-2 bg-gray-100 dark:bg-slate-700 rounded-full text-gray-500">
+                    <button onClick={() => setIsDailyDetailOpen(false)} className="p-2 bg-gray-100 dark:bg-slate-700 rounded-full text-gray-500 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors">
                       <X size={20} />
                     </button>
                   </div>
+                </div>
+
+                {/* Add Record / Memo Buttons in Daily Detail Modal */}
+                <div className="flex gap-3 mb-6 shrink-0">
+                  <button 
+                    onClick={() => { resetForm(); setIsSchedule(false); setIsModalOpen(true); }}
+                    className="flex-1 bg-blue-600 dark:bg-blue-500 text-white py-3.5 rounded-2xl font-extrabold text-sm shadow-sm hover:bg-blue-700 active:scale-95 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Plus size={18} strokeWidth={3} /> 일당 기록
+                  </button>
+                  <button 
+                    onClick={() => { resetForm(); setIsSchedule(true); setIsModalOpen(true); }}
+                    className="flex-1 bg-purple-100 dark:bg-slate-700 text-purple-700 dark:text-white py-3.5 rounded-2xl font-extrabold text-sm shadow-sm hover:bg-purple-200 active:scale-95 transition-all flex items-center justify-center gap-2"
+                  >
+                    <CalendarIcon size={18} strokeWidth={2.5} /> 일정 메모
+                  </button>
                 </div>
 
                 {selectedRecords.length === 0 ? (
