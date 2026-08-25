@@ -737,16 +737,16 @@ function MainApp({ session }: { session: Session }) {
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">일한 날짜</label>
                 <div className="flex flex-wrap gap-2 items-center">
-                  <span className="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg text-sm font-bold">
-                    {format(date, 'MM.dd')}
-                  </span>
-                  <button 
-                    type="button"
-                    onClick={() => Dialog.alert({ title: '안내', message: '날짜 추가 기능은 준비 중입니다.' })}
-                    className="px-3 py-1.5 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 rounded-lg text-sm font-bold hover:bg-gray-200 dark:hover:bg-slate-600 flex items-center gap-1 transition-colors"
-                  >
-                    <Plus size={14} /> 날짜 추가
-                  </button>
+                  <input 
+                    type="date"
+                    value={format(date, 'yyyy-MM-dd')}
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        setDate(new Date(e.target.value));
+                      }
+                    }}
+                    className="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg text-sm font-bold border-none focus:ring-0"
+                  />
                 </div>
               </div>
               

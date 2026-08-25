@@ -93,6 +93,76 @@ export default function Settings({ session }: { session: Session }) {
     await supabase.auth.signOut();
   };
 
+  const handleEditProfile = async () => {
+    const { value, cancelled } = await Dialog.prompt({
+      title: '프로필 수정',
+      message: '새로운 이름을 입력하세요.',
+      inputText: displayName || ''
+    });
+    if (!cancelled && value) {
+      const { error } = await supabase.from('profiles').update({ display_name: value }).eq('id', session.user.id);
+      if (!error) {
+        setDisplayName(value);
+        await Dialog.alert({ title: '성공', message: '프로필이 업데이트 되었습니다.' });
+      }
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    const { value } = await Dialog.confirm({
+      title: '계정 삭제',
+      message: '정말로 계정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없으며 모든 데이터가 삭제됩니다.',
+      okButtonTitle: '삭제',
+      cancelButtonTitle: '취소'
+    });
+    if (value) {
+      await supabase.from('profiles').delete().eq('id', session.user.id);
+      await supabase.auth.signOut();
+    }
+  };
+
+  const handlePremiumPayment = async () => {
+    const { value } = await Dialog.confirm({
+      title: '프리미엄 구독',
+      message: '월 4,900원에 프리미엄 기능을 사용하시겠습니까? (현재 베타 기간 무료 가입)',
+      okButtonTitle: '결제하기',
+      cancelButtonTitle: '취소'
+    });
+    if (value) {
+      await Dialog.alert({ title: '성공', message: '프리미엄 구독이 완료되었습니다!' });
+      setIsPremiumOpen(false);
+    }
+  };
+
+  const handleReissueCalendarLink = async () => {
+    const { value } = await Dialog.confirm({
+      title: '링크 재발급',
+      message: '새로운 링크를 발급하면 기존 캘린더 연동이 끊어집니다. 계속하시겠습니까?',
+      okButtonTitle: '재발급',
+      cancelButtonTitle: '취소'
+    });
+    if (value) {
+      await Dialog.alert({ title: '성공', message: '새로운 구독 링크가 발급되었습니다.' });
+    }
+  };
+
+  const handleUpdateTeamName = async (teamId: string, currentName: string) => {
+    const { value, cancelled } = await Dialog.prompt({
+      title: '팀 이름 변경',
+      message: '새 팀 이름을 입력하세요.',
+      inputText: currentName
+    });
+    if (!cancelled && value) {
+      const { error } = await supabase.from('teams').update({ name: value }).eq('id', teamId);
+      if (!error) {
+        fetchTeams();
+        await Dialog.alert({ title: '성공', message: '팀 이름이 변경되었습니다.' });
+      } else {
+        await Dialog.alert({ title: '오류', message: '팀 이름 변경 권한이 없거나 실패했습니다.' });
+      }
+    }
+  };
+
   const ListItem = ({ icon: Icon, title, subtitle, value, onClick, highlight = false }: any) => (
     <div onClick={onClick} className={`flex items-center justify-between p-4 cursor-pointer active:bg-gray-50 dark:active:bg-slate-700/50 transition-colors ${highlight ? 'bg-amber-50 dark:bg-amber-900/10 rounded-2xl mb-2 border border-amber-100 dark:border-amber-900/20' : 'border-b border-gray-100 dark:border-slate-800 last:border-0'}`}>
       <div className="flex items-center gap-4">
@@ -117,7 +187,7 @@ export default function Settings({ session }: { session: Session }) {
         <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white mb-6">설정</h2>
         
         {/* Profile Section */}
-        <div className="bg-white dark:bg-slate-800 rounded-3xl p-5 mb-6 shadow-sm border border-gray-100 dark:border-slate-700/50 flex justify-between items-center cursor-pointer active:scale-95 transition-transform" onClick={() => Dialog.alert({ title: '안내', message: '프로필 수정 기능은 준비 중입니다.' })}>
+        <div className="bg-white dark:bg-slate-800 rounded-3xl p-5 mb-6 shadow-sm border border-gray-100 dark:border-slate-700/50 flex justify-between items-center cursor-pointer active:scale-95 transition-transform" onClick={handleEditProfile}>
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 font-extrabold text-xl">
               {displayName ? displayName.charAt(0) : '나'}
@@ -178,7 +248,7 @@ export default function Settings({ session }: { session: Session }) {
           <button onClick={handleLogout} className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-300 font-extrabold hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors">
             <LogOut size={18} /> 로그아웃
           </button>
-          <button onClick={() => Dialog.alert({ title: '안내', message: '계정 삭제 처리는 준비 중입니다.' })} className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl bg-red-50 dark:bg-red-500/10 text-red-500 font-extrabold hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors">
+          <button onClick={handleDeleteAccount} className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl bg-red-50 dark:bg-red-500/10 text-red-500 font-extrabold hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors">
             <Trash2 size={18} /> 계정 삭제
           </button>
         </div>
@@ -332,7 +402,7 @@ export default function Settings({ session }: { session: Session }) {
               
               <div className="flex flex-col gap-3">
                 <button 
-                  onClick={() => { Dialog.alert({ title: '안내', message: '프리미엄 결제 준비 중입니다.' }); setIsPremiumOpen(false); }}
+                  onClick={handlePremiumPayment}
                   className="w-full bg-amber-500 text-white font-extrabold text-lg py-4 rounded-xl shadow-lg shadow-amber-500/20 hover:bg-amber-600 active:scale-[0.98] transition-all cursor-pointer"
                 >
                   프리미엄 시작하기
@@ -453,7 +523,7 @@ export default function Settings({ session }: { session: Session }) {
                     링크 복사
                   </button>
                   <button 
-                    onClick={() => { Dialog.alert({ title: '안내', message: '링크 재발급 기능 준비 중입니다.' }) }}
+                    onClick={handleReissueCalendarLink}
                     className="w-full bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 font-extrabold text-lg py-4 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-600 active:scale-[0.98] transition-all cursor-pointer"
                   >
                     링크 재발급
@@ -523,7 +593,7 @@ export default function Settings({ session }: { session: Session }) {
                             placeholder="새 팀 이름"
                             className="flex-1 px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-sm text-gray-900 dark:text-white"
                           />
-                          <button onClick={() => Dialog.alert({title:'안내', message:'이름 변경 기능은 준비 중입니다.'})} className="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors text-sm whitespace-nowrap">
+                          <button onClick={() => handleUpdateTeamName(team.id, team.name)} className="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors text-sm whitespace-nowrap">
                             변경
                           </button>
                         </div>

@@ -12,7 +12,7 @@ export default function SettlementManager({ records, settlements, setSettlements
   
   const [filter, setFilter] = useState<'all' | 'unpaid' | 'paid'>('all');
   const [isAddSettlementOpen, setIsAddSettlementOpen] = useState(false);
-  const [settleDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [settleDate, setSettleDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [settleSiteName, setSettleSiteName] = useState('');
   const [settleAmount, setSettleAmount] = useState('');
   const [settleMemo, setSettleMemo] = useState('');
@@ -502,12 +502,12 @@ export default function SettlementManager({ records, settlements, setSettlements
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">정산일</label>
                   <div className="flex items-center gap-2">
-                    <span className="px-4 py-3 bg-gray-100 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-xl text-sm font-bold flex-1">
-                      {format(settleDate, 'yyyy-MM-dd')}
-                    </span>
-                    <button type="button" className="px-4 py-3 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-bold text-sm rounded-xl hover:bg-blue-100 transition-colors" onClick={() => Dialog.alert({title:'안내', message:'날짜 선택 기능 준비 중'})}>
-                      날짜 선택
-                    </button>
+                    <input 
+                      type="date"
+                      value={settleDate}
+                      onChange={(e) => setSettleDate(e.target.value)}
+                      className="px-4 py-3 bg-gray-100 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-xl text-sm font-bold flex-1 focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
                   </div>
                 </div>
                 
