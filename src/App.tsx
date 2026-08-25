@@ -29,6 +29,14 @@ type WageRecord = {
   memo: string
 }
 
+type SettlementRecord = {
+  id: string
+  siteName: string
+  date: string
+  amount: number
+  memo: string
+}
+
 function MainApp({ session }: { session: Session }) {
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return document.documentElement.classList.contains('dark');
@@ -43,6 +51,7 @@ function MainApp({ session }: { session: Session }) {
   const [date, setDate] = useState<Date>(new Date())
   const [activeStartDate, setActiveStartDate] = useState<Date | null>(new Date())
   const [records, setRecords] = useState<WageRecord[]>([])
+  const [settlements, setSettlements] = useState<SettlementRecord[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [currentView, setCurrentView] = useState<'calendar' | 'site' | 'settlement' | 'stats' | 'settings'>('calendar')
   
@@ -71,18 +80,15 @@ function MainApp({ session }: { session: Session }) {
   }, [])
 
   const fetchRecords = async () => {
-    const { data, error } = await supabase
+    const { data: recordsData, error: recordsError } = await supabase
       .from('wage_records')
       .select('*')
       .eq('user_id', session.user.id)
       
-    if (error) {
-      console.error('데이터 불러오기 에러:', error)
-      return
-    }
-
-    if (data) {
-      setRecords(data.map(d => ({
+    if (recordsError) {
+      console.error('데이터 불러오기 에러:', recordsError)
+    } else if (recordsData) {
+      setRecords(recordsData.map(d => ({
         id: d.id,
         date: d.date,
         siteName: d.site_name,
@@ -93,6 +99,23 @@ function MainApp({ session }: { session: Session }) {
         expenses: d.expenses || 0,
         color: d.color || '#3B82F6',
         status: d.status || '미수금',
+        memo: d.memo || ''
+      })))
+    }
+
+    const { data: settlementsData, error: settlementsError } = await supabase
+      .from('settlements')
+      .select('*')
+      .eq('user_id', session.user.id)
+
+    if (settlementsError) {
+      console.error('정산 데이터 불러오기 에러:', settlementsError)
+    } else if (settlementsData) {
+      setSettlements(settlementsData.map(d => ({
+        id: d.id,
+        siteName: d.site_name,
+        date: d.date,
+        amount: d.amount,
         memo: d.memo || ''
       })))
     }
@@ -163,10 +186,11 @@ function MainApp({ session }: { session: Session }) {
 
   const handleSaveInlineMemo = async () => {
     if (!inlineMemo.trim()) return
-    const record = {
+    const recordData = {
+      user_id: session.user.id,
       date: format(date, 'yyyy-MM-dd'),
-      siteName: '개인 메모',
-      taskContent: '',
+      site_name: '개인 메모',
+      task_content: '',
       memo: inlineMemo,
       amount: 0,
       poomsu: 0,
@@ -174,9 +198,22 @@ function MainApp({ session }: { session: Session }) {
       color: '#8B5CF6',
       status: '완료'
     }
-    const { data, error } = await supabase.from('wage_records').insert([record]).select()
-    if (!error && data) {
-      setRecords([...records, data[0]])
+    const { data, error } = await supabase.from('wage_records').insert([recordData]).select()
+    if (!error && data && data.length > 0) {
+      const d = data[0]
+      setRecords([...records, {
+        id: d.id,
+        date: d.date,
+        siteName: d.site_name,
+        taskContent: d.task_content || '',
+        amount: d.amount,
+        taxDeduction: d.tax_deduction || false,
+        poomsu: d.poomsu || 1.0,
+        expenses: d.expenses || 0,
+        color: d.color || '#3B82F6',
+        status: d.status || '미수금',
+        memo: d.memo || ''
+      }])
       setInlineMemo('')
     }
   }
@@ -527,7 +564,7 @@ function MainApp({ session }: { session: Session }) {
 
         {currentView === 'site' && <motion.div key="site" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><SiteManager records={records} setCurrentView={setCurrentView} /></motion.div>}
 
-        {currentView === 'settlement' && <motion.div key="settlement" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><SettlementManager records={records} setCurrentView={setCurrentView} onUpdateStatus={handleUpdateStatus} /></motion.div>}
+        {currentView === 'settlement' && <motion.div key="settlement" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><SettlementManager records={records} settlements={settlements} setSettlements={setSettlements} setCurrentView={setCurrentView} onUpdateStatus={handleUpdateStatus} session={session} /></motion.div>}
       </AnimatePresence>
 
 

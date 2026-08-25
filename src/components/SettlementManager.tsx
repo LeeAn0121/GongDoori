@@ -6,18 +6,50 @@ import { saveAs } from 'file-saver'
 import { parseISO, format } from 'date-fns'
 import { motion, AnimatePresence } from 'framer-motion'
 
-export default function SettlementManager({ records, setCurrentView, onUpdateStatus }: { records: any[], setCurrentView: (view: 'calendar' | 'site' | 'settlement' | 'stats' | 'settings') => void, onUpdateStatus: (id: string, status: '미수금' | '완료') => void }) {
+import { supabase } from '../supabaseClient'
+
+export default function SettlementManager({ records, settlements, setSettlements, setCurrentView, onUpdateStatus, session }: { records: any[], settlements: any[], setSettlements: any, setCurrentView: (view: 'calendar' | 'site' | 'settlement' | 'stats' | 'settings') => void, onUpdateStatus: (id: string, status: '미수금' | '완료') => void, session: any }) {
   
   const [filter, setFilter] = useState<'all' | 'unpaid' | 'paid'>('all');
   const [isAddSettlementOpen, setIsAddSettlementOpen] = useState(false);
-  const [settleDate] = useState(new Date());
+  const [settleDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [settleSiteName, setSettleSiteName] = useState('');
   const [settleAmount, setSettleAmount] = useState('');
   const [settleMemo, setSettleMemo] = useState('');
 
-  const handleAddSettlement = (e: React.FormEvent) => {
+  const handleAddSettlement = async (e: React.FormEvent) => {
     e.preventDefault();
-    Dialog.alert({ title: '안내', message: '임의 정산 기록 기능은 백엔드 준비 중입니다.' });
+    if (!settleSiteName || !settleAmount) return;
+
+    const newSettlement = {
+      user_id: session.user.id,
+      site_name: settleSiteName,
+      date: settleDate,
+      amount: parseInt(settleAmount, 10),
+      memo: settleMemo
+    };
+
+    const { data, error } = await supabase.from('settlements').insert([newSettlement]).select();
+    if (error) {
+      await Dialog.alert({ title: '오류', message: '저장 중 오류가 발생했습니다: ' + error.message });
+      return;
+    }
+    
+    if (data && data.length > 0) {
+      const d = data[0];
+      setSettlements([...settlements, {
+        id: d.id,
+        siteName: d.site_name,
+        date: d.date,
+        amount: d.amount,
+        memo: d.memo || ''
+      }]);
+    }
+
     setIsAddSettlementOpen(false);
+    setSettleSiteName('');
+    setSettleAmount('');
+    setSettleMemo('');
   };
 
   const totalAmount = records.reduce((sum, r) => sum + r.amount, 0);
@@ -479,6 +511,18 @@ export default function SettlementManager({ records, setCurrentView, onUpdateSta
                   </div>
                 </div>
                 
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">현장명</label>
+                  <input 
+                    type="text"
+                    required
+                    value={settleSiteName}
+                    onChange={(e) => setSettleSiteName(e.target.value)}
+                    placeholder="예) 강남 아파트 현장"
+                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-[15px] text-gray-900 dark:text-white"
+                  />
+                </div>
+
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">정산액 (원)</label>
                   <input 
