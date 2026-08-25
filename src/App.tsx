@@ -254,7 +254,7 @@ function MainApp({ session }: { session: Session }) {
         </button>
       </header>
       
-      <main className="w-full max-w-md px-4 flex flex-col gap-4 mt-2 pb-28 relative">
+      <main className="w-full max-w-md px-4 flex flex-col gap-4 mt-2 pb-36 relative">
         <AnimatePresence mode="wait">
           {currentView === 'calendar' && (
             <motion.div 
@@ -452,7 +452,7 @@ function MainApp({ session }: { session: Session }) {
                 className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-all duration-300 ${isActive ? 'text-blue-600 dark:text-blue-400 scale-105' : 'text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300'}`}
               >
                 {isActive && (
-                  <span className="absolute -top-3.5 w-8 h-1 rounded-full bg-blue-600 dark:bg-blue-500 animate-in fade-in zoom-in duration-300"></span>
+                  <span className="absolute top-0 w-8 h-1.5 rounded-b-full bg-blue-600 dark:bg-blue-500 animate-in fade-in zoom-in duration-300"></span>
                 )}
                 <item.icon size={24} strokeWidth={isActive ? 2.5 : 2} className={isActive ? 'drop-shadow-sm' : ''} />
                 <span className={`text-[10px] ${isActive ? 'font-extrabold' : 'font-semibold'}`}>{item.label}</span>
