@@ -34,7 +34,7 @@ export default function Auth() {
       const isNative = Capacitor.isNativePlatform();
       const redirectUrl = isNative 
         ? 'gongdoori://login-callback'
-        : window.location.origin;
+        : window.location.origin + window.location.pathname;
 
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: redirectUrl
@@ -54,7 +54,7 @@ export default function Auth() {
       const isNative = Capacitor.isNativePlatform();
       const redirectUrl = isNative 
         ? 'gongdoori://login-callback'
-        : window.location.origin
+        : window.location.origin + window.location.pathname
         
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: provider as any,
