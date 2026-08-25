@@ -29,6 +29,16 @@ type WageRecord = {
 }
 
 function MainApp({ session }: { session: Session }) {
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return document.documentElement.classList.contains('dark');
+  })
+
+  const toggleDarkMode = () => {
+    const isDark = document.documentElement.classList.toggle('dark');
+    setIsDarkMode(isDark);
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  }
+
   const [date, setDate] = useState<Date>(new Date())
   const [activeStartDate, setActiveStartDate] = useState<Date | null>(new Date())
   const [records, setRecords] = useState<WageRecord[]>([])
@@ -583,18 +593,6 @@ function MainApp({ session }: { session: Session }) {
 }
 
 function App() {
-  const [selectedRecord, setSelectedRecord] = useState<WageRecord | null>(null)
-  
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    return document.documentElement.classList.contains('dark');
-  })
-
-  const toggleDarkMode = () => {
-    const isDark = document.documentElement.classList.toggle('dark');
-    setIsDarkMode(isDark);
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-  }
-
   const [session, setSession] = useState<Session | null>(null)
 
   useEffect(() => {
