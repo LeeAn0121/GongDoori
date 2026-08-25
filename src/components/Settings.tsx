@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { Dialog } from '@capacitor/dialog';
+import { ActionSheet } from '@capacitor/action-sheet';
 import type { Session } from '@supabase/supabase-js';
-import { ChevronRight, Sparkles, Hammer, Wallet, Palette, Monitor, HelpCircle, CalendarDays, DollarSign, Calculator, Bug, Users, KeyRound, LogOut, Trash2, X } from 'lucide-react';
+import { ChevronRight, Sparkles, Hammer, Wallet, Palette, Monitor, HelpCircle, CalendarDays, DollarSign, Calculator, Bug, Users, KeyRound, LogOut, Trash2, X, QrCode } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Settings({ session }: { session: Session }) {
@@ -19,6 +20,7 @@ export default function Settings({ session }: { session: Session }) {
   const [inviteCode, setInviteCode] = useState('');
   const [joinMessage, setJoinMessage] = useState('');
   const [supportContent, setSupportContent] = useState('');
+  const [themeMode, setThemeMode] = useState(localStorage.getItem('themePreference') || 'system');
   
   const [myTeams, setMyTeams] = useState<any[]>([]);
 
@@ -163,6 +165,54 @@ export default function Settings({ session }: { session: Session }) {
     }
   };
 
+  const handleChangeTheme = async () => {
+    const result = await ActionSheet.showActions({
+      title: '테마 선택',
+      options: [
+        { title: '시스템 설정 (기본)' },
+        { title: '라이트 모드' },
+        { title: '다크 모드' }
+      ]
+    });
+    
+    let newMode = 'system';
+    if (result.index === 1) newMode = 'light';
+    if (result.index === 2) newMode = 'dark';
+    
+    setThemeMode(newMode);
+    localStorage.setItem('themePreference', newMode);
+    
+    if (newMode === 'system') {
+      const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.classList.toggle('dark', isDark);
+    } else {
+      document.documentElement.classList.toggle('dark', newMode === 'dark');
+    }
+  };
+
+  const handleQRScanMock = async () => {
+    // 실제 카메라 뷰 대신 프롬프트로 QR 코드 텍스트(초대 코드)를 입력받아 가입 처리
+    const { value, cancelled } = await Dialog.prompt({
+      title: 'QR 코드 스캔 (시뮬레이션)',
+      message: '카메라로 촬영한 QR 코드의 내용을 입력해주세요. (초대 코드 입력)',
+    });
+    if (!cancelled && value) {
+      // 입력받은 값으로 바로 가입 처리 로직 재활용
+      const { data: teamData } = await supabase.from('teams').select('id, name').eq('invite_code', value.toUpperCase()).single();
+      if (!teamData) {
+        await Dialog.alert({title: '오류', message: '유효하지 않은 QR(초대) 코드입니다.'});
+        return;
+      }
+      const { error } = await supabase.from('team_members').insert([{ team_id: teamData.id, user_id: session.user.id }]);
+      if (error) {
+        await Dialog.alert({title: '오류', message: '이미 가입된 팀이거나 가입에 실패했습니다.'});
+        return;
+      }
+      await Dialog.alert({title: '성공', message: `'${teamData.name}' 팀에 가입되었습니다!`});
+      fetchTeams();
+    }
+  };
+
   const ListItem = ({ icon: Icon, title, subtitle, value, onClick, highlight = false }: any) => (
     <div onClick={onClick} className={`flex items-center justify-between p-4 cursor-pointer active:bg-gray-50 dark:active:bg-slate-700/50 transition-colors ${highlight ? 'bg-amber-50 dark:bg-amber-900/10 rounded-2xl mb-2 border border-amber-100 dark:border-amber-900/20' : 'border-b border-gray-100 dark:border-slate-800 last:border-0'}`}>
       <div className="flex items-center gap-4">
@@ -215,7 +265,7 @@ export default function Settings({ session }: { session: Session }) {
         <div className="bg-white dark:bg-slate-800 rounded-3xl overflow-hidden mb-6 shadow-sm border border-gray-100 dark:border-slate-700/50">
           <ListItem icon={Hammer} title="내 직종" value="🏗️ 종합" onClick={() => {}} />
           <ListItem icon={Wallet} title="계좌번호" subtitle="정산 요청 시 자동으로 같이 보내드려요" value="미설정" onClick={() => {}} />
-          <ListItem icon={Monitor} title="테마" value="시스템" onClick={() => Dialog.alert({title:'테마', message:'시스템 / 라이트 / 다크 선택 기능 준비 중'})} />
+          <ListItem icon={Monitor} title="테마" value={themeMode === 'system' ? '시스템' : (themeMode === 'dark' ? '다크' : '라이트')} onClick={handleChangeTheme} />
           <ListItem icon={Palette} title="메인 색상" onClick={() => {}} />
           <ListItem icon={CalendarDays} title="캘린더 구독" subtitle="다른 캘린더 앱(구글, 애플 등)과 연동해요" onClick={() => setIsCalSubOpen(true)} />
           <ListItem icon={HelpCircle} title="앱 사용법 다시 보기" subtitle="달력·정산·통계 등 각 탭 설명을 처음부터 다시 봐요" onClick={() => {}} />
@@ -241,7 +291,7 @@ export default function Settings({ session }: { session: Session }) {
           <ListItem icon={Users} title="팀 관리" subtitle="현재 소속된 팀을 관리해요" onClick={() => setIsTeamManageOpen(true)} />
           <ListItem icon={Users} title="팀 만들기" subtitle="팀원들과 현장을 함께 관리해요" onClick={() => setIsCreateTeamOpen(true)} />
           <ListItem icon={KeyRound} title="코드로 참여하기" subtitle="초대 코드를 입력해 팀 가입을 신청해요" onClick={() => setIsJoinTeamOpen(true)} />
-          <ListItem icon={Monitor} title="QR코드 스캔" subtitle="QR코드를 스캔하여 팀에 가입해요" onClick={() => Dialog.alert({title:'안내', message:'카메라 권한 및 QR코드 스캔 기능 준비 중입니다.'})} />
+          <ListItem icon={QrCode} title="QR코드 기능" subtitle="QR코드를 스캔하여 팀에 가입해요" onClick={handleQRScanMock} />
         </div>
 
         {/* Account Actions */}
