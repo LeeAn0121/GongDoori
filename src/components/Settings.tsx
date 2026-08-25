@@ -2,14 +2,11 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { Dialog } from '@capacitor/dialog';
 import type { Session } from '@supabase/supabase-js';
+import { ChevronRight, Sparkles, Hammer, Wallet, Palette, Monitor, HelpCircle, CalendarDays, DollarSign, Calculator, Bug, Users, KeyRound, LogOut, Trash2 } from 'lucide-react';
 
 export default function Settings({ session }: { session: Session }) {
   const [displayName, setDisplayName] = useState('');
-  const [role, setRole] = useState('팀원');
-  const [loading, setLoading] = useState(false);
-  const [newPassword, setNewPassword] = useState('');
-  const [isPasswordLoading, setIsPasswordLoading] = useState(false);
-
+  
   useEffect(() => {
     fetchProfile();
   }, []);
@@ -18,22 +15,6 @@ export default function Settings({ session }: { session: Session }) {
     const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
     if (data) {
       setDisplayName(data.display_name || '');
-      setRole(data.role || '팀원');
-    }
-  };
-
-  const handleUpdateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    const { error } = await supabase.from('profiles').update({
-      display_name: displayName
-    }).eq('id', session.user.id);
-    setLoading(false);
-
-    if (error) {
-      await Dialog.alert({ title: '오류', message: '프로필 저장에 실패했습니다.' });
-    } else {
-      await Dialog.alert({ title: '성공', message: '프로필이 업데이트 되었습니다.' });
     }
   };
 
@@ -41,76 +22,93 @@ export default function Settings({ session }: { session: Session }) {
     await supabase.auth.signOut();
   };
 
-  const handleUpdatePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newPassword) return;
-    
-    setIsPasswordLoading(true);
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
-    setIsPasswordLoading(false);
-
-    if (error) {
-      await Dialog.alert({ title: '오류', message: '비밀번호 변경에 실패했습니다: ' + error.message });
-    } else {
-      await Dialog.alert({ title: '성공', message: '비밀번호가 성공적으로 변경되었습니다.' });
-      setNewPassword('');
-    }
-  };
+  const ListItem = ({ icon: Icon, title, subtitle, value, onClick, highlight = false }: any) => (
+    <div onClick={onClick} className={`flex items-center justify-between p-4 cursor-pointer active:bg-gray-50 dark:active:bg-slate-700/50 transition-colors ${highlight ? 'bg-amber-50 dark:bg-amber-900/10 rounded-2xl mb-2 border border-amber-100 dark:border-amber-900/20' : 'border-b border-gray-100 dark:border-slate-800 last:border-0'}`}>
+      <div className="flex items-center gap-4">
+        <div className={`p-2 rounded-xl ${highlight ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-600' : 'bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-gray-400'}`}>
+          <Icon size={20} />
+        </div>
+        <div>
+          <div className={`font-extrabold text-[15px] ${highlight ? 'text-amber-700 dark:text-amber-500' : 'text-gray-900 dark:text-slate-50'}`}>{title}</div>
+          {subtitle && <div className="text-[12px] font-semibold text-gray-500 mt-0.5">{subtitle}</div>}
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        {value && <span className="text-sm font-bold text-gray-600 dark:text-gray-300">{value}</span>}
+        <ChevronRight size={18} className="text-gray-300 dark:text-gray-600" />
+      </div>
+    </div>
+  );
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700/50 p-6 flex flex-col min-h-[400px] animate-in fade-in duration-200">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-extrabold text-gray-900 dark:text-slate-50">내 정보</h2>
-      </div>
-      
-      <form onSubmit={handleUpdateProfile} className="flex flex-col gap-4">
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">이메일</label>
-          <input type="text" disabled value={session.user.email} className="w-full px-4 py-3 bg-gray-100 dark:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-500 dark:text-slate-400" />
-        </div>
+    <div className="flex flex-col pb-10 animate-in fade-in duration-300">
+      <div className="px-4 py-2">
+        <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white mb-6">설정</h2>
         
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">이름 (닉네임)</label>
-          <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="이름을 입력하세요" className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">직책</label>
-          <input type="text" disabled value={role} className="w-full px-4 py-3 bg-gray-100 dark:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-500 dark:text-slate-400 font-bold" />
-          <p className="text-xs text-gray-500 dark:text-slate-400 mt-2">직책은 차후 업데이트에서 자유롭게 변경할 수 있습니다.</p>
-        </div>
-
-        <button type="submit" disabled={loading} className="w-full mt-4 bg-gray-900 dark:bg-slate-700 text-white font-bold py-4 rounded-xl hover:bg-black dark:hover:bg-slate-600 transition-all cursor-pointer">
-          {loading ? '저장 중...' : '프로필 저장'}
-        </button>
-      </form>
-
-      <div className="mt-8 pt-6 border-t border-gray-100 dark:border-slate-700/50">
-        <h3 className="text-lg font-bold text-gray-900 dark:text-slate-50 mb-4">보안</h3>
-        <form onSubmit={handleUpdatePassword} className="flex flex-col gap-4">
-          <div>
-            <input 
-              type="password" 
-              value={newPassword} 
-              onChange={(e) => setNewPassword(e.target.value)} 
-              placeholder="새 비밀번호 입력" 
-              className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" 
-              minLength={6}
-            />
+        {/* Profile Section */}
+        <div className="bg-white dark:bg-slate-800 rounded-3xl p-5 mb-6 shadow-sm border border-gray-100 dark:border-slate-700/50 flex justify-between items-center cursor-pointer active:scale-95 transition-transform" onClick={() => Dialog.alert({ title: '안내', message: '프로필 수정 기능은 준비 중입니다.' })}>
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 font-extrabold text-xl">
+              {displayName ? displayName.charAt(0) : '나'}
+            </div>
+            <div>
+              <div className="font-extrabold text-lg text-gray-900 dark:text-white">{displayName || '이름 없음'}</div>
+              <div className="text-sm font-medium text-gray-500">{session.user.email}</div>
+            </div>
           </div>
-          <button type="submit" disabled={isPasswordLoading || !newPassword} className="w-full bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400 font-bold py-4 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all disabled:opacity-50 cursor-pointer">
-            {isPasswordLoading ? '변경 중...' : '비밀번호 변경하기'}
-          </button>
-        </form>
-      </div>
+          <div className="px-4 py-2 bg-gray-100 dark:bg-slate-700 text-sm font-bold text-gray-600 dark:text-gray-300 rounded-xl">
+            수정
+          </div>
+        </div>
 
-      <div className="mt-8 pt-6 border-t border-gray-100 dark:border-slate-700/50">
-        <button 
-          onClick={handleLogout}
-          className="w-full py-4 flex items-center justify-center gap-2 text-red-500 font-bold bg-red-50 dark:bg-red-900/10 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
-        >
-          로그아웃
-        </button>
+        {/* Premium */}
+        <ListItem 
+          icon={Sparkles} 
+          title="프리미엄" 
+          subtitle="더 많은 기능 살펴보기" 
+          highlight={true}
+          onClick={() => Dialog.alert({ title: '안내', message: '프리미엄 구독은 준비 중입니다.' })}
+        />
+
+        {/* General Settings */}
+        <div className="bg-white dark:bg-slate-800 rounded-3xl overflow-hidden mb-6 shadow-sm border border-gray-100 dark:border-slate-700/50">
+          <ListItem icon={Hammer} title="내 직종" value="🏗️ 종합" onClick={() => {}} />
+          <ListItem icon={Wallet} title="계좌번호" subtitle="정산 요청 시 자동으로 같이 보내드려요" value="미설정" onClick={() => {}} />
+          <ListItem icon={Monitor} title="테마" value="시스템" onClick={() => {}} />
+          <ListItem icon={Palette} title="메인 색상" onClick={() => {}} />
+          <ListItem icon={HelpCircle} title="앱 사용법 다시 보기" subtitle="달력·정산·통계 등 각 탭 설명을 처음부터 다시 봐요" onClick={() => {}} />
+          <ListItem icon={CalendarDays} title="달력 주간 합계" subtitle="각 주 수입 합계를 달력에 표시" onClick={() => {}} />
+        </div>
+
+        {/* Work Settings */}
+        <h3 className="text-sm font-extrabold text-gray-500 px-4 mb-3">작업</h3>
+        <div className="bg-white dark:bg-slate-800 rounded-3xl overflow-hidden mb-6 shadow-sm border border-gray-100 dark:border-slate-700/50">
+          <ListItem icon={DollarSign} title="기본 일당" subtitle="새 현장 추가 시 자동 입력" value="미설정" onClick={() => {}} />
+          <ListItem icon={Calculator} title="인적공제 3.3% 기본값" subtitle="새 현장 추가 시 공제 체크 자동 적용" onClick={() => {}} />
+        </div>
+
+        {/* Support */}
+        <h3 className="text-sm font-extrabold text-gray-500 px-4 mb-3">지원</h3>
+        <div className="bg-white dark:bg-slate-800 rounded-3xl overflow-hidden mb-6 shadow-sm border border-gray-100 dark:border-slate-700/50">
+          <ListItem icon={Bug} title="버그 제보 / 문의하기" subtitle="사진 첨부해서 문의하면 답변을 알려드려요" onClick={() => {}} />
+        </div>
+
+        {/* Team */}
+        <h3 className="text-sm font-extrabold text-gray-500 px-4 mb-3">팀</h3>
+        <div className="bg-white dark:bg-slate-800 rounded-3xl overflow-hidden mb-6 shadow-sm border border-gray-100 dark:border-slate-700/50">
+          <ListItem icon={Users} title="팀 만들기" subtitle="팀원들과 현장을 함께 관리해요" onClick={() => {}} />
+          <ListItem icon={KeyRound} title="코드로 참여하기" subtitle="초대 코드를 입력해 팀 가입을 신청해요" onClick={() => {}} />
+        </div>
+
+        {/* Account Actions */}
+        <div className="flex flex-col gap-3 mt-8 mb-8">
+          <button onClick={handleLogout} className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-300 font-extrabold hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors">
+            <LogOut size={18} /> 로그아웃
+          </button>
+          <button onClick={() => Dialog.alert({ title: '안내', message: '계정 삭제 처리는 준비 중입니다.' })} className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl bg-red-50 dark:bg-red-500/10 text-red-500 font-extrabold hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors">
+            <Trash2 size={18} /> 계정 삭제
+          </button>
+        </div>
       </div>
     </div>
   );
