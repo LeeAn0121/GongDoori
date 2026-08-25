@@ -2,8 +2,13 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { Dialog } from '@capacitor/dialog';
 import type { Session } from '@supabase/supabase-js';
-import { ChevronRight, Sparkles, Hammer, Wallet, Palette, Monitor, HelpCircle, CalendarDays, DollarSign, Calculator, Bug, Users, KeyRound, LogOut, Trash2, X, QrCode } from 'lucide-react';
+import { ChevronRight, Sparkles, Hammer, Wallet, Palette, Monitor, HelpCircle, CalendarDays, DollarSign, Calculator, Bug, Users, KeyRound, LogOut, Trash2, X, QrCode, Bell } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { showToast } from './Toast';
+import { QRCodeCanvas } from 'qrcode.react';
+import { downloadAndShareBase64 } from '../utils/download';
+
+import { Html5QrcodeScanner } from 'html5-qrcode';
 
 export default function Settings({ session }: { session: Session }) {
   const [displayName, setDisplayName] = useState('');
@@ -13,6 +18,7 @@ export default function Settings({ session }: { session: Session }) {
   const [isPremiumOpen, setIsPremiumOpen] = useState(false);
   const [isCalSubOpen, setIsCalSubOpen] = useState(false);
   const [isTeamManageOpen, setIsTeamManageOpen] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
 
   const [newTeamName, setNewTeamName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
@@ -35,6 +41,22 @@ export default function Settings({ session }: { session: Session }) {
     fetchProfile();
     fetchTeams();
   }, []);
+
+  useEffect(() => {
+    if (isScannerOpen) {
+      const scanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
+      scanner.render(async (decodedText) => {
+        scanner.clear();
+        setIsScannerOpen(false);
+        handleJoinByCode(decodedText);
+      }, () => {
+        // ignore
+      });
+      return () => {
+        scanner.clear().catch(() => {});
+      };
+    }
+  }, [isScannerOpen]);
 
   const fetchProfile = async () => {
     const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
@@ -205,29 +227,26 @@ export default function Settings({ session }: { session: Session }) {
     }
     
     setIsThemeModalOpen(false);
+    showToast(`테마: ${newMode === 'system' ? '시스템' : newMode === 'dark' ? '다크' : '라이트'} 적용`, 'success');
   };
 
-  const handleQRScanMock = async () => {
-    // 실제 카메라 뷰 대신 프롬프트로 QR 코드 텍스트(초대 코드)를 입력받아 가입 처리
-    const { value, cancelled } = await Dialog.prompt({
-      title: 'QR 코드 스캔 (시뮬레이션)',
-      message: '카메라로 촬영한 QR 코드의 내용을 입력해주세요. (초대 코드 입력)',
-    });
-    if (!cancelled && value) {
-      // 입력받은 값으로 바로 가입 처리 로직 재활용
-      const { data: teamData } = await supabase.from('teams').select('id, name').eq('invite_code', value.toUpperCase()).single();
-      if (!teamData) {
-        await Dialog.alert({title: '오류', message: '유효하지 않은 QR(초대) 코드입니다.'});
-        return;
-      }
-      const { error } = await supabase.from('team_members').insert([{ team_id: teamData.id, user_id: session.user.id }]);
-      if (error) {
-        await Dialog.alert({title: '오류', message: '이미 가입된 팀이거나 가입에 실패했습니다.'});
-        return;
-      }
-      await Dialog.alert({title: '성공', message: `'${teamData.name}' 팀에 가입되었습니다!`});
-      fetchTeams();
+  const handleJoinByCode = async (code: string) => {
+    const { data: teamData } = await supabase.from('teams').select('id, name').eq('invite_code', code.toUpperCase()).single();
+    if (!teamData) {
+      await Dialog.alert({title: '오류', message: '유효하지 않은 QR(초대) 코드입니다.'});
+      return;
     }
+    const { error } = await supabase.from('team_members').insert([{ team_id: teamData.id, user_id: session.user.id }]);
+    if (error) {
+      await Dialog.alert({title: '오류', message: '이미 가입된 팀이거나 가입에 실패했습니다.'});
+      return;
+    }
+    await Dialog.alert({title: '성공', message: `'${teamData.name}' 팀에 가입되었습니다!`});
+    fetchTeams();
+  };
+
+  const handleQRScanMock = () => {
+    setIsScannerOpen(true);
   };
 
   const handleUpdateJobType = async () => {
@@ -238,6 +257,7 @@ export default function Settings({ session }: { session: Session }) {
     setJobType(job);
     localStorage.setItem('jobType', job);
     setIsJobModalOpen(false);
+    showToast(`직종: ${job} 변경됨`, 'success');
   };
 
   const handleUpdateAccount = async () => {
@@ -245,6 +265,7 @@ export default function Settings({ session }: { session: Session }) {
     if (!cancelled && value) {
       setAccountNumber(value);
       localStorage.setItem('accountNumber', value);
+      showToast('계좌번호가 저장되었습니다', 'success');
     }
   };
 
@@ -269,6 +290,7 @@ export default function Settings({ session }: { session: Session }) {
     for (const [key, value] of Object.entries(palette)) {
       document.documentElement.style.setProperty(`--mc-${key}`, value);
     }
+    showToast('메인 색상이 변경되었습니다', 'success');
   };
 
   const handleRestartTutorial = async () => {
@@ -283,6 +305,8 @@ export default function Settings({ session }: { session: Session }) {
     const newVal = !showWeeklyTotal;
     setShowWeeklyTotal(newVal);
     localStorage.setItem('showWeeklyTotal', String(newVal));
+    window.dispatchEvent(new Event('settingsChanged'));
+    showToast(`주간 합계 ${newVal ? '켜짐' : '꺼짐'}`, 'success');
   };
 
   const handleUpdateDefaultWage = async () => {
@@ -290,6 +314,7 @@ export default function Settings({ session }: { session: Session }) {
     if (!cancelled && value) {
       setDefaultWage(value);
       localStorage.setItem('defaultWage', value);
+      showToast(`기본 일당: ${parseInt(value).toLocaleString()}원 설정`, 'success');
     }
   };
 
@@ -297,6 +322,49 @@ export default function Settings({ session }: { session: Session }) {
     const newVal = !taxDeductionDefault;
     setTaxDeductionDefault(newVal);
     localStorage.setItem('taxDeductionDefault', String(newVal));
+    showToast(`3.3% 원천징수 ${newVal ? '기본 적용' : '기본 해제'}`, 'success');
+  };
+
+  const handleToggleNotification = async () => {
+    try {
+      // Use Capacitor LocalNotifications if available (mobile)
+      const { LocalNotifications } = await import('@capacitor/local-notifications');
+      const permStatus = await LocalNotifications.requestPermissions();
+      if (permStatus.display === 'granted') {
+        await LocalNotifications.schedule({
+          notifications: [
+            {
+              title: '공돌이 알림',
+              body: '오늘 일당은 기록하셨나요? 잊지 말고 등록하세요!',
+              id: 1,
+              schedule: { on: { hour: 18, minute: 0 }, repeats: true },
+              actionTypeId: '',
+              extra: null
+            }
+          ]
+        });
+        localStorage.setItem('notificationsEnabled', 'true');
+        showToast('매일 오후 6시 시스템 알림이 활성화되었습니다', 'success');
+      } else {
+        localStorage.setItem('notificationsEnabled', 'false');
+        showToast('알림 권한이 거부되었습니다', 'error');
+      }
+    } catch {
+      // Fallback to web Notifications if not running in Capacitor (browser)
+      if ('Notification' in window) {
+        const perm = await Notification.requestPermission();
+        if (perm === 'granted') {
+          new Notification('공돌이 알림', { body: '웹 시스템 알림이 활성화되었습니다!', icon: '/app_icon_v2.jpg' });
+          localStorage.setItem('notificationsEnabled', 'true');
+          showToast('시스템 알림 활성화', 'success');
+        } else {
+          localStorage.setItem('notificationsEnabled', 'false');
+          showToast('알림 권한이 거부되었습니다', 'error');
+        }
+      } else {
+        showToast('알림 설정 중 오류가 발생했습니다', 'error');
+      }
+    }
   };
 
   const ListItem = ({ icon: Icon, title, subtitle, value, onClick, highlight = false }: any) => (
@@ -367,6 +435,13 @@ export default function Settings({ session }: { session: Session }) {
             }} 
           />
           <ListItem icon={HelpCircle} title="앱 사용법 다시 보기" subtitle="달력·정산·통계 등 각 탭 설명을 처음부터 다시 봐요" onClick={handleRestartTutorial} />
+          <ListItem 
+            icon={Bell} 
+            title="일일 알림" 
+            subtitle="매일 오후 6시에 일당 기록 알림 받기" 
+            value={localStorage.getItem('notificationsEnabled') === 'true' ? "켜짐" : "꺼짐"} 
+            onClick={handleToggleNotification} 
+          />
           <ListItem 
             icon={CalendarDays} 
             title="달력 주간 합계" 
@@ -789,6 +864,26 @@ export default function Settings({ session }: { session: Session }) {
                         </div>
                       </div>
 
+                      {/* QR 코드 및 공유 */}
+                      <div className="mb-6">
+                        <h4 className="text-xs font-extrabold text-gray-500 mb-2">QR 코드 (팀 초대)</h4>
+                        <div className="flex flex-col items-center gap-4 bg-gray-50 dark:bg-slate-900 p-4 rounded-xl border border-gray-200 dark:border-slate-700">
+                          <QRCodeCanvas id={`qr-${team.id}`} value={team.invite_code} size={150} level={"H"} />
+                          <button 
+                            onClick={async () => {
+                              const canvas = document.getElementById(`qr-${team.id}`) as HTMLCanvasElement;
+                              if (canvas) {
+                                const base64 = canvas.toDataURL('image/png').split(',')[1];
+                                await downloadAndShareBase64(`Team_QR_${team.invite_code}.png`, base64, 'image/png');
+                              }
+                            }}
+                            className="px-4 py-2 bg-purple-600 text-white font-bold rounded-lg hover:bg-purple-700 transition-colors text-sm w-full"
+                          >
+                            QR 이미지 다운로드 및 공유
+                          </button>
+                        </div>
+                      </div>
+
                       {/* 팀원 목록 (나머지 로직은 백엔드 완성 후) */}
                       <div>
                         <h4 className="text-xs font-extrabold text-gray-500 mb-2">기능 준비 중</h4>
@@ -799,6 +894,27 @@ export default function Settings({ session }: { session: Session }) {
                 )}
               </div>
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {/* 스캐너 모달 */}
+      <AnimatePresence>
+        {isScannerOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex flex-col"
+          >
+            <div className="flex justify-between items-center p-6">
+              <h3 className="text-xl font-extrabold text-white tracking-tight">QR 코드 스캔</h3>
+              <button onClick={() => setIsScannerOpen(false)} className="p-2 bg-gray-800 rounded-full text-white hover:bg-gray-700 transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="flex-1 flex items-center justify-center p-4">
+              <div id="qr-reader" className="w-full max-w-sm bg-white rounded-2xl overflow-hidden"></div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

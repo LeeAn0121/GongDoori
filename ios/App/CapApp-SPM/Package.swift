@@ -15,7 +15,10 @@ let package = Package(
         .package(name: "CapacitorActionSheet", path: "../../../node_modules/@capacitor/action-sheet"),
         .package(name: "CapacitorApp", path: "../../../node_modules/@capacitor/app"),
         .package(name: "CapacitorBrowser", path: "../../../node_modules/@capacitor/browser"),
-        .package(name: "CapacitorDialog", path: "../../../node_modules/@capacitor/dialog")
+        .package(name: "CapacitorDialog", path: "../../../node_modules/@capacitor/dialog"),
+        .package(name: "CapacitorFilesystem", path: "../../../node_modules/@capacitor/filesystem"),
+        .package(name: "CapacitorLocalNotifications", path: "../../../node_modules/@capacitor/local-notifications"),
+        .package(name: "CapacitorShare", path: "../../../node_modules/@capacitor/share")
     ],
     targets: [
         .target(
@@ -26,7 +29,10 @@ let package = Package(
                 .product(name: "CapacitorActionSheet", package: "CapacitorActionSheet"),
                 .product(name: "CapacitorApp", package: "CapacitorApp"),
                 .product(name: "CapacitorBrowser", package: "CapacitorBrowser"),
-                .product(name: "CapacitorDialog", package: "CapacitorDialog")
+                .product(name: "CapacitorDialog", package: "CapacitorDialog"),
+                .product(name: "CapacitorFilesystem", package: "CapacitorFilesystem"),
+                .product(name: "CapacitorLocalNotifications", package: "CapacitorLocalNotifications"),
+                .product(name: "CapacitorShare", package: "CapacitorShare")
             ]
         )
     ]

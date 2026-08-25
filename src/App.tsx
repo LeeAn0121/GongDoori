@@ -12,6 +12,8 @@ import Stats from './components/Stats'
 import Settings from './components/Settings'
 import SiteManager from './components/SiteManager'
 import SettlementManager from './components/SettlementManager'
+import Tutorial from './components/Tutorial'
+import ToastContainer from './components/Toast'
 import { motion, AnimatePresence } from 'framer-motion'
 import 'react-calendar/dist/Calendar.css'
 
@@ -76,8 +78,15 @@ function MainApp({ session }: { session: Session }) {
   const selectedRecords = records.filter(r => r.date === selectedDateStr)
 
   useEffect(() => {
-    fetchRecords()
-  }, [])
+    fetchRecords();
+  }, []);
+
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const handleSettingsChange = () => setTick(t => t + 1);
+    window.addEventListener('settingsChanged', handleSettingsChange);
+    return () => window.removeEventListener('settingsChanged', handleSettingsChange);
+  }, []);
 
   useEffect(() => {
     const mainColorHex = localStorage.getItem('mainColor') || '#3B82F6';
@@ -334,7 +343,19 @@ function MainApp({ session }: { session: Session }) {
     return null
   }
 
+  const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem('hasSeenTutorial'));
+
+  const handleTutorialComplete = () => {
+    localStorage.setItem('hasSeenTutorial', 'true');
+    setShowTutorial(false);
+  };
+
   return (
+    <>
+    <ToastContainer />
+    <AnimatePresence>
+      {showTutorial && <Tutorial onComplete={handleTutorialComplete} onPageChange={(view) => setCurrentView(view as any)} />}
+    </AnimatePresence>
     <div className="min-h-screen bg-gradient-to-br from-primary-50/50 via-gray-50 to-purple-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex flex-col pb-20 transition-colors duration-500">
       <header className="w-full max-w-full px-5 pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-4 flex justify-between items-center z-40 relative">
         <div className="flex items-center gap-3">
@@ -803,6 +824,7 @@ function MainApp({ session }: { session: Session }) {
 
       {/* Add Record Modal Ends */}
     </div>
+    </>
   )
 }
 

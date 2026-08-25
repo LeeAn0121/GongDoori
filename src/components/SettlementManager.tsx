@@ -2,7 +2,7 @@ import { CheckCircle, XCircle, Wallet, AlertCircle, FileText, Table, Plus, X } f
 import { Dialog } from '@capacitor/dialog'
 import { useState } from 'react'
 import ExcelJS from 'exceljs'
-import { saveAs } from 'file-saver'
+import { downloadAndShareBuffer, downloadAndShareBase64 } from '../utils/download'
 import { parseISO, format } from 'date-fns'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -214,11 +214,50 @@ export default function SettlementManager({ records, settlements, setSettlements
     sheet.getRow(currentRow).height = 100;
 
     const buffer = await workbook.xlsx.writeBuffer();
-    saveAs(new Blob([buffer]), `청구서_${format(new Date(), 'yyyyMMdd')}.xlsx`);
+    await downloadAndShareBuffer(
+      `청구서_${format(new Date(), 'yyyyMMdd')}.xlsx`,
+      buffer,
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
   };
 
-  const exportToPDF = () => {
-    window.print();
+  const exportToPDF = async () => {
+    try {
+      const { Capacitor } = await import('@capacitor/core');
+      if (Capacitor.isNativePlatform()) {
+        const html2pdf = (await import('html2pdf.js')).default;
+        const element = document.getElementById('pdf-content');
+        if (!element) return;
+        
+        // Show printable content for a moment
+        element.style.display = 'block';
+        
+        const opt = {
+          margin: 10,
+          filename: `청구서_${format(new Date(), 'yyyyMMdd')}.pdf`,
+          image: { type: 'jpeg' as const, quality: 0.98 },
+          html2canvas: { scale: 2 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+        };
+        
+        const pdfBase64 = await html2pdf().from(element).set(opt).outputPdf('datauristring');
+        element.style.display = 'none'; // Hide again
+        
+        // Output format is data:application/pdf;filename=generated.pdf;base64,.....
+        const base64Data = pdfBase64.split(',')[1];
+        
+        await downloadAndShareBase64(
+          `청구서_${format(new Date(), 'yyyyMMdd')}.pdf`, 
+          base64Data, 
+          'application/pdf'
+        );
+      } else {
+        window.print();
+      }
+    } catch (e) {
+      console.error(e);
+      window.print();
+    }
   };
 
   return (
@@ -297,7 +336,7 @@ export default function SettlementManager({ records, settlements, setSettlements
       </div>
 
       {/* Professional PDF Print Layout (Hidden on Screen, Visible on Print) */}
-      <div className="print-only hidden bg-white text-black p-4 w-[210mm] min-h-[297mm] mx-auto box-border">
+      <div id="pdf-content" className="print-only hidden bg-white text-black p-4 w-[210mm] min-h-[297mm] mx-auto box-border">
         <div className="text-center mb-10">
           <h1 className="text-4xl font-extrabold tracking-[1em] underline underline-offset-[12px] decoration-4 text-black">청 구 서</h1>
         </div>

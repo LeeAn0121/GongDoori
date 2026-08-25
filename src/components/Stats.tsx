@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts';
 import { subWeeks, subMonths, isAfter, parseISO, format } from 'date-fns';
 import ExcelJS from 'exceljs';
-import { saveAs } from 'file-saver';
+import { downloadAndShareBuffer, downloadAndShareBase64 } from '../utils/download';
 import { FileText, Table, Calculator, X } from 'lucide-react';
 import { Dialog } from '@capacitor/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -123,11 +123,48 @@ export default function Stats({ records }: { records: any[] }) {
     });
 
     const buffer = await workbook.xlsx.writeBuffer();
-    saveAs(new Blob([buffer]), `내역이력_${format(new Date(), 'yyyyMMdd')}.xlsx`);
+    await downloadAndShareBuffer(
+      `내역이력_${format(new Date(), 'yyyyMMdd')}.xlsx`,
+      buffer,
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
   };
 
-  const exportToPDF = () => {
-    window.print();
+  const exportToPDF = async () => {
+    try {
+      const { Capacitor } = await import('@capacitor/core');
+      if (Capacitor.isNativePlatform()) {
+        const html2pdf = (await import('html2pdf.js')).default;
+        const element = document.getElementById('stats-pdf-content');
+        if (!element) return;
+        
+        element.style.display = 'block';
+        
+        const opt = {
+          margin: 10,
+          filename: `인건비명세서_${format(new Date(), 'yyyyMMdd')}.pdf`,
+          image: { type: 'jpeg' as const, quality: 0.98 },
+          html2canvas: { scale: 2 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' as const }
+        };
+        
+        const pdfBase64 = await html2pdf().from(element).set(opt).outputPdf('datauristring');
+        element.style.display = 'none';
+        
+        const base64Data = pdfBase64.split(',')[1];
+        
+        await downloadAndShareBase64(
+          `인건비명세서_${format(new Date(), 'yyyyMMdd')}.pdf`, 
+          base64Data, 
+          'application/pdf'
+        );
+      } else {
+        window.print();
+      }
+    } catch (e) {
+      console.error(e);
+      window.print();
+    }
   };
 
   const handleCalculateTax = async () => {
@@ -255,7 +292,7 @@ export default function Stats({ records }: { records: any[] }) {
       </button>
 
       {/* Premium Invoice Print Layout (Hidden on Screen, Visible on Print) */}
-      <div className="print-only hidden bg-white text-black p-10 max-w-[210mm] mx-auto min-h-[297mm]">
+      <div id="stats-pdf-content" className="print-only hidden bg-white text-black p-10 max-w-[210mm] mx-auto min-h-[297mm]">
         {/* Header */}
         <div className="text-center mb-10 pb-6 border-b-4 border-gray-900">
           <h1 className="text-4xl font-black text-gray-900 mb-2 tracking-widest">노 무 비 청 구 명 세 서</h1>
