@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Calendar } from 'react-calendar'
-import { Plus, MapPin, DollarSign, AlignLeft, Trash2, Edit2, Calendar as CalendarIcon, MoreVertical, BarChart2, Settings as SettingsIcon } from 'lucide-react'
+import { Plus, MapPin, DollarSign, AlignLeft, Trash2, Edit2, Calendar as CalendarIcon, MoreVertical, BarChart2, Settings as SettingsIcon, Sun, Moon } from 'lucide-react'
 import { format } from 'date-fns'
 import { supabase } from './supabaseClient'
 import type { Session } from '@supabase/supabase-js'
@@ -230,6 +230,13 @@ function MainApp({ session }: { session: Session }) {
           <img src={`${import.meta.env.BASE_URL}app_icon_v2.jpg`} alt="공돌이" className="w-8 h-8 rounded-lg shadow-sm" />
           공돌이
         </h1>
+        <button 
+          onClick={toggleDarkMode}
+          className="p-2 bg-white dark:bg-slate-800 rounded-full shadow-sm border border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors active:scale-95 cursor-pointer text-gray-600 dark:text-yellow-400"
+          aria-label="다크 모드 전환"
+        >
+          {isDarkMode ? <Moon size={20} /> : <Sun size={20} />}
+        </button>
       </header>
       
       <main className="w-full max-w-md px-4 flex flex-col gap-4 pb-28">
@@ -576,6 +583,18 @@ function MainApp({ session }: { session: Session }) {
 }
 
 function App() {
+  const [selectedRecord, setSelectedRecord] = useState<WageRecord | null>(null)
+  
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return document.documentElement.classList.contains('dark');
+  })
+
+  const toggleDarkMode = () => {
+    const isDark = document.documentElement.classList.toggle('dark');
+    setIsDarkMode(isDark);
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  }
+
   const [session, setSession] = useState<Session | null>(null)
 
   useEffect(() => {

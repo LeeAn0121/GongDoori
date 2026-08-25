@@ -57,16 +57,6 @@ export default function Settings({ session }: { session: Session }) {
     }
   };
 
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    return document.documentElement.classList.contains('dark');
-  });
-
-  const toggleDarkMode = () => {
-    const isDark = document.documentElement.classList.toggle('dark');
-    setIsDarkMode(isDark);
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-  };
-
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700/50 p-6 flex flex-col min-h-[400px] animate-in fade-in duration-200">
       <div className="flex justify-between items-center mb-6">
@@ -94,22 +84,6 @@ export default function Settings({ session }: { session: Session }) {
           {loading ? '저장 중...' : '프로필 저장'}
         </button>
       </form>
-
-      <div className="mt-8 pt-6 border-t border-gray-100 dark:border-slate-700/50">
-        <h3 className="text-lg font-bold text-gray-900 dark:text-slate-50 mb-4">화면 설정</h3>
-        <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-700">
-          <div>
-            <p className="font-bold text-gray-900 dark:text-slate-100">다크 모드</p>
-            <p className="text-xs text-gray-500 dark:text-slate-400">어두운 테마를 사용합니다</p>
-          </div>
-          <button
-            onClick={toggleDarkMode}
-            className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${isDarkMode ? 'bg-blue-600 dark:bg-orange-500' : 'bg-gray-300 dark:bg-slate-600'}`}
-          >
-            <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${isDarkMode ? 'translate-x-6' : 'translate-x-0'}`}></div>
-          </button>
-        </div>
-      </div>
 
       <div className="mt-8 pt-6 border-t border-gray-100 dark:border-slate-700/50">
         <h3 className="text-lg font-bold text-gray-900 dark:text-slate-50 mb-4">보안</h3>
