@@ -335,8 +335,8 @@ function MainApp({ session }: { session: Session }) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50/50 via-gray-50 to-purple-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex flex-col items-center pb-20 transition-colors duration-500">
-      <header className="w-full max-w-3xl px-5 pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-4 flex justify-between items-center z-40 relative">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50/50 via-gray-50 to-purple-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex flex-col pb-20 transition-colors duration-500">
+      <header className="w-full max-w-full px-5 pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-4 flex justify-between items-center z-40 relative">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-[0.85rem] overflow-hidden shadow-sm shadow-primary-900/5 dark:shadow-black/50 border-[1.5px] border-white dark:border-slate-700/50">
             <img src={`${import.meta.env.BASE_URL}app_icon_v2.jpg`} alt="공돌이" className="w-full h-full object-cover" />
@@ -354,7 +354,7 @@ function MainApp({ session }: { session: Session }) {
         </button>
       </header>
       
-      <main className="w-full max-w-3xl px-4 flex flex-col gap-4 mt-2 pb-36 relative">
+      <main className="w-full max-w-full px-4 flex flex-col gap-4 mt-2 pb-36 relative">
         <AnimatePresence mode="wait">
           {currentView === 'calendar' && (
             <motion.div 
@@ -474,7 +474,7 @@ function MainApp({ session }: { session: Session }) {
                 animate={{ y: 0 }}
                 exit={{ y: '100%' }}
                 transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl w-full max-w-3xl mx-auto rounded-t-[2rem] p-6 shadow-2xl border-t border-white/20 dark:border-slate-700 min-h-[50vh] max-h-[85vh] overflow-y-auto flex flex-col"
+                className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl w-full max-w-full mx-auto rounded-t-[2rem] p-6 shadow-2xl border-t border-white/20 dark:border-slate-700 min-h-[50vh] max-h-[85vh] overflow-y-auto flex flex-col"
                 onClick={e => e.stopPropagation()}
               >
                 <div className="w-12 h-1.5 bg-gray-300 dark:bg-slate-600 rounded-full mx-auto mb-6 shrink-0"></div>
@@ -610,7 +610,7 @@ function MainApp({ session }: { session: Session }) {
       </main>
 
       {/* Bottom Navigation Bar */}
-      <nav className="fixed bottom-0 w-full max-w-3xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-gray-200/80 dark:border-slate-800 pb-[env(safe-area-inset-bottom)] z-40 shadow-[0_-8px_30px_rgba(0,0,0,0.04)]">
+      <nav className="fixed bottom-0 w-full max-w-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-gray-200/80 dark:border-slate-800 pb-[env(safe-area-inset-bottom)] z-40 shadow-[0_-8px_30px_rgba(0,0,0,0.04)]">
         <div className="flex justify-around items-center h-16 px-2">
           {[
             { id: 'calendar', icon: CalendarIcon, label: '달력' },
@@ -657,7 +657,7 @@ function MainApp({ session }: { session: Session }) {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="bg-white dark:bg-slate-800 w-full max-w-3xl rounded-t-[2rem] sm:rounded-3xl p-7 shadow-2xl border-t sm:border border-white/20 dark:border-slate-700"
+              className="bg-white dark:bg-slate-800 w-full max-w-full rounded-t-[2rem] sm:rounded-3xl p-7 shadow-2xl border-t sm:border border-white/20 dark:border-slate-700"
             >
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-extrabold text-gray-900 dark:text-slate-50 tracking-tight">

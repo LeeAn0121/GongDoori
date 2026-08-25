@@ -10,12 +10,13 @@
     <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
     <title>GongDoori</title>
     <script>
-      if (localStorage.getItem('theme') === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-        localStorage.setItem('theme', 'light');
-      }
+      (function() {
+        var pref = localStorage.getItem('themePreference') || 'system';
+        var theme = localStorage.getItem('theme');
+        if (pref === 'dark' || (pref === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) || theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        }
+      })();
     </script>
   </head>
   <body class="bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-slate-50 antialiased transition-colors duration-300">

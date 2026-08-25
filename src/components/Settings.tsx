@@ -191,20 +191,20 @@ export default function Settings({ session }: { session: Session }) {
     setIsThemeModalOpen(true);
   };
   
-  const handleSelectTheme = async (newMode: string) => {
+  const handleSelectTheme = (newMode: string) => {
     setThemeMode(newMode);
     localStorage.setItem('themePreference', newMode);
     
     if (newMode === 'system') {
       const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
       document.documentElement.classList.toggle('dark', isDark);
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
     } else {
       document.documentElement.classList.toggle('dark', newMode === 'dark');
+      localStorage.setItem('theme', newMode === 'dark' ? 'dark' : 'light');
     }
     
     setIsThemeModalOpen(false);
-    await Dialog.alert({ title: '안내', message: '테마가 즉시 적용됩니다.' });
-    window.location.reload();
   };
 
   const handleQRScanMock = async () => {
@@ -458,7 +458,7 @@ export default function Settings({ session }: { session: Session }) {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="bg-white dark:bg-slate-800 w-full max-w-3xl rounded-t-[2rem] sm:rounded-3xl p-7 shadow-2xl border-t sm:border border-white/20 dark:border-slate-700"
+              className="bg-white dark:bg-slate-800 w-full max-w-full rounded-t-[2rem] sm:rounded-3xl p-7 shadow-2xl border-t sm:border border-white/20 dark:border-slate-700"
             >
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-extrabold text-gray-900 dark:text-slate-50 tracking-tight">
@@ -511,7 +511,7 @@ export default function Settings({ session }: { session: Session }) {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="bg-white dark:bg-slate-800 w-full max-w-3xl rounded-t-[2rem] sm:rounded-3xl p-7 shadow-2xl border-t sm:border border-white/20 dark:border-slate-700"
+              className="bg-white dark:bg-slate-800 w-full max-w-full rounded-t-[2rem] sm:rounded-3xl p-7 shadow-2xl border-t sm:border border-white/20 dark:border-slate-700"
             >
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-extrabold text-gray-900 dark:text-slate-50 tracking-tight">
@@ -575,7 +575,7 @@ export default function Settings({ session }: { session: Session }) {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="bg-white dark:bg-slate-800 w-full max-w-3xl rounded-t-[2rem] sm:rounded-3xl p-7 shadow-2xl border-t sm:border border-white/20 dark:border-slate-700"
+              className="bg-white dark:bg-slate-800 w-full max-w-full rounded-t-[2rem] sm:rounded-3xl p-7 shadow-2xl border-t sm:border border-white/20 dark:border-slate-700"
             >
               <div className="flex flex-col items-center text-center mt-4 mb-6">
                 <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 text-amber-500 rounded-2xl flex items-center justify-center mb-4">
@@ -673,7 +673,7 @@ export default function Settings({ session }: { session: Session }) {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="bg-white dark:bg-slate-800 w-full max-w-3xl rounded-t-[2rem] sm:rounded-3xl p-7 shadow-2xl border-t sm:border border-white/20 dark:border-slate-700"
+              className="bg-white dark:bg-slate-800 w-full max-w-full rounded-t-[2rem] sm:rounded-3xl p-7 shadow-2xl border-t sm:border border-white/20 dark:border-slate-700"
             >
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-extrabold text-gray-900 dark:text-slate-50 tracking-tight">
@@ -731,7 +731,7 @@ export default function Settings({ session }: { session: Session }) {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="bg-white dark:bg-slate-800 w-full max-w-3xl rounded-t-[2rem] sm:rounded-3xl p-7 shadow-2xl border-t sm:border border-white/20 dark:border-slate-700 max-h-[90vh] overflow-y-auto"
+              className="bg-white dark:bg-slate-800 w-full max-w-full rounded-t-[2rem] sm:rounded-3xl p-7 shadow-2xl border-t sm:border border-white/20 dark:border-slate-700 max-h-[90vh] overflow-y-auto"
             >
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-extrabold text-gray-900 dark:text-slate-50 tracking-tight">
