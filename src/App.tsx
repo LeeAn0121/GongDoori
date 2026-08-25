@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Calendar } from 'react-calendar'
-import { Plus, MapPin, DollarSign, AlignLeft, Trash2, Edit2, Calendar as CalendarIcon, MoreVertical, BarChart2, Settings as SettingsIcon, Sun, Moon, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Plus, MapPin, DollarSign, Trash2, Edit2, Calendar as CalendarIcon, MoreVertical, BarChart2, Settings as SettingsIcon, Sun, Moon, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { format } from 'date-fns'
 import { supabase } from './supabaseClient'
 import type { Session } from '@supabase/supabase-js'
@@ -584,144 +584,140 @@ function MainApp({ session }: { session: Session }) {
               className="bg-white dark:bg-slate-800 w-full max-w-md rounded-t-[2rem] sm:rounded-3xl p-7 shadow-2xl border-t sm:border border-white/20 dark:border-slate-700"
             >
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-extrabold text-gray-900 dark:text-slate-50 tracking-tight">
-                  {format(date, 'M월 d일')} {editingId ? '기록 수정' : '기록 추가'}
+                <h3 className="text-xl font-extrabold text-gray-900 dark:text-slate-50 tracking-tight">
+                  {editingId ? '작업 수정' : '작업 추가'}
                 </h3>
                 <button 
                   onClick={() => { setIsModalOpen(false); resetForm(); }}
-                  className="px-4 py-2 bg-gray-100/80 dark:bg-slate-700/80 rounded-xl text-sm font-bold text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-600 cursor-pointer transition-colors"
+                  className="p-2 bg-gray-100 dark:bg-slate-700 rounded-full text-gray-500 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
                 >
-                  닫기
+                  <X size={20} />
                 </button>
               </div>
             
-            <form onSubmit={handleAddRecord} className="flex flex-col gap-4">
-              <div className="flex bg-gray-100 dark:bg-slate-700 p-1 rounded-xl mb-2">
-                <button type="button" onClick={() => setIsSchedule(false)} className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${!isSchedule ? 'bg-white dark:bg-slate-800 shadow-sm text-blue-600 dark:text-orange-400' : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:text-slate-300'}`}>일당 기록</button>
-                <button type="button" onClick={() => setIsSchedule(true)} className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${isSchedule ? 'bg-white dark:bg-slate-800 shadow-sm text-purple-600 dark:text-emerald-400' : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:text-slate-300'}`}>일정 (메모)</button>
-              </div>
+            <form onSubmit={handleAddRecord} className="flex flex-col gap-5">
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">{isSchedule ? '일정 제목' : '현장명'}</label>
-                <div className="relative">
-                  {isSchedule ? <CalendarIcon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-900 dark:text-gray-400 dark:text-slate-500" /> : <MapPin size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-900 dark:text-gray-400 dark:text-slate-500" />}
-                  <input 
-                    type="text" 
-                    required
-                    value={siteName}
-                    onChange={(e) => setSiteName(e.target.value)}
-                    placeholder={isSchedule ? "예: 팀 회식, 공구 구매" : "예: 강남 래미안 인테리어"}
-                    className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:bg-slate-800 transition-all"
-                  />
-                </div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">현장명</label>
+                <input 
+                  type="text" 
+                  required
+                  value={siteName}
+                  onChange={(e) => setSiteName(e.target.value)}
+                  placeholder="예) 강남 아파트 현장"
+                  className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:bg-slate-800 transition-all font-medium text-[15px]"
+                />
               </div>
               
-              {!isSchedule && (
-                <>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">작업 내용 (선택)</label>
-                    <div className="relative">
-                      <AlignLeft size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-900 dark:text-gray-400 dark:text-slate-500" />
-                      <input 
-                        type="text" 
-                        value={taskContent}
-                        onChange={(e) => setTaskContent(e.target.value)}
-                        placeholder="예: 목공 마감, 창호 설치" 
-                        className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:bg-slate-800 transition-all"
-                      />
-                    </div>
-                  </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">작업 내용 (선택)</label>
+                <input 
+                  type="text" 
+                  value={taskContent}
+                  onChange={(e) => setTaskContent(e.target.value)}
+                  placeholder="예) 목공 마감, 창호 설치" 
+                  className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:bg-slate-800 transition-all font-medium text-[15px]"
+                />
+              </div>
 
-                  <div className="flex gap-4">
-                    <div className="flex-1">
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">일당 (원)</label>
-                      <div className="relative">
-                        <DollarSign size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-900 dark:text-gray-400 dark:text-slate-500" />
-                        <input 
-                          type="number" 
-                          required
-                          value={amount}
-                          onChange={(e) => setAmount(e.target.value)}
-                          placeholder="예: 180000" 
-                          className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:bg-slate-800 transition-all"
-                        />
-                      </div>
-                    </div>
-                    <div className="w-24">
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">품수</label>
-                      <select 
-                        value={poomsu} 
-                        onChange={(e) => setPoomsu(Number(e.target.value))}
-                        className="w-full px-3 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:bg-slate-800 transition-all appearance-none text-center"
-                      >
-                        <option value={1.0}>1품</option>
-                        <option value={0.5}>0.5품</option>
-                        <option value={1.5}>1.5품</option>
-                        <option value={2.0}>2품</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <label className="flex items-center gap-2 cursor-pointer mt-[-4px]">
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">일당 (원)</label>
+                  <input 
+                    type="number" 
+                    required
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    placeholder="0" 
+                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:bg-slate-800 transition-all font-bold text-lg text-blue-600 dark:text-blue-400 placeholder:text-gray-400 placeholder:font-medium"
+                  />
+                  <label className="flex items-center gap-2 cursor-pointer mt-3">
                     <input 
                       type="checkbox" 
                       checked={taxDeduction} 
                       onChange={(e) => setTaxDeduction(e.target.checked)}
                       className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600"
                     />
-                    <span className="text-sm font-medium text-gray-600 dark:text-slate-400">인적공제 3.3% 공제 후 받음</span>
+                    <span className="text-[13px] font-semibold text-gray-500 dark:text-slate-400">인적공제 3.3% 공제 후 받음</span>
                   </label>
+                </div>
+                <div className="w-28 flex flex-col">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">품수</label>
+                  <select 
+                    value={poomsu} 
+                    onChange={(e) => setPoomsu(Number(e.target.value))}
+                    className="w-full px-3 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:bg-slate-800 transition-all font-bold text-gray-900 dark:text-white"
+                  >
+                    <option value={1.0}>1품 — 하루</option>
+                    <option value={0.5}>0.5품 — 반나절</option>
+                    <option value={1.5}>1.5품 — 연장</option>
+                    <option value={2.0}>2품 — 야간</option>
+                  </select>
+                </div>
+              </div>
 
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">경비 (선택)</label>
-                    <div className="relative">
-                      <Plus size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-900 dark:text-gray-400 dark:text-slate-500" />
-                      <input 
-                        type="number" 
-                        value={expenses}
-                        onChange={(e) => setExpenses(e.target.value)}
-                        placeholder="예: 식대, 자재비 등 (3.3% 공제 제외)" 
-                        className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:bg-slate-800 transition-all"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">달력 색상</label>
-                    <div className="flex gap-3">
-                      {['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6'].map(c => (
-                        <button
-                          key={c}
-                          type="button"
-                          onClick={() => setColor(c)}
-                          className={`w-8 h-8 rounded-full ${color === c ? 'ring-2 ring-offset-2 ring-gray-900 dark:ring-white dark:ring-offset-slate-800' : ''}`}
-                          style={{ backgroundColor: c }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </>
-              )}
-              
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">상세 메모 (선택)</label>
-                <div className="relative">
-                  <AlignLeft size={18} className="absolute left-3 top-4 text-gray-900 dark:text-gray-400 dark:text-slate-500" />
-                  <textarea 
-                    value={memo}
-                    onChange={(e) => setMemo(e.target.value)}
-                    placeholder="특이사항이나 작업 내용을 적어주세요" 
-                    rows={3}
-                    className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:bg-slate-800 transition-all resize-none"
-                  ></textarea>
+                <div className="flex justify-between items-center mb-1.5">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300">경비 (선택 · 식대·자재비 등, 3.3% 공제 대상 아님)</label>
+                </div>
+                {!expenses && expenses !== '0' ? (
+                  <button 
+                    type="button"
+                    onClick={() => setExpenses('0')}
+                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-dashed border-gray-300 dark:border-slate-600 rounded-xl text-sm font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 transition-all text-left flex items-center gap-2"
+                  >
+                    <Plus size={16} /> + 경비 추가
+                  </button>
+                ) : (
+                  <input 
+                    type="number" 
+                    value={expenses}
+                    onChange={(e) => setExpenses(e.target.value)}
+                    placeholder="0" 
+                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:bg-slate-800 transition-all font-bold text-lg text-gray-900 dark:text-white placeholder:text-gray-400"
+                  />
+                )}
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center mb-1.5">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300">달력 색상</label>
+                  <span className="text-[11px] font-medium text-gray-400">달력에서 현장을 색으로 구분해요</span>
+                </div>
+                <div className="flex gap-3">
+                  {['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6'].map(c => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setColor(c)}
+                      className={`w-9 h-9 rounded-full ${color === c ? 'ring-2 ring-offset-2 ring-gray-900 dark:ring-white dark:ring-offset-slate-800' : ''}`}
+                      style={{ backgroundColor: c }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">일한 날짜</label>
+                <div className="flex flex-wrap gap-2 items-center">
+                  <span className="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg text-sm font-bold">
+                    {format(date, 'MM.dd')}
+                  </span>
+                  <button 
+                    type="button"
+                    onClick={() => Dialog.alert({ title: '안내', message: '날짜 추가 기능은 준비 중입니다.' })}
+                    className="px-3 py-1.5 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 rounded-lg text-sm font-bold hover:bg-gray-200 dark:hover:bg-slate-600 flex items-center gap-1 transition-colors"
+                  >
+                    <Plus size={14} /> 날짜 추가
+                  </button>
                 </div>
               </div>
               
               <button 
                 type="submit"
-                className="w-full mt-2 bg-blue-600 dark:bg-orange-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-200 dark:shadow-orange-900/50 hover:bg-blue-700 dark:bg-orange-600 active:scale-[0.98] transition-all cursor-pointer"
+                className="w-full mt-4 bg-blue-600 dark:bg-blue-500 text-white font-extrabold text-lg py-4 rounded-xl shadow-md hover:bg-blue-700 dark:hover:bg-blue-600 active:scale-[0.98] transition-all cursor-pointer"
               >
-                저장하기
+                저장
               </button>
             </form>
           </motion.div>
