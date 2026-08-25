@@ -12,6 +12,7 @@ import Stats from './components/Stats'
 import Settings from './components/Settings'
 import SiteManager from './components/SiteManager'
 import SettlementManager from './components/SettlementManager'
+import { motion, AnimatePresence } from 'framer-motion'
 import 'react-calendar/dist/Calendar.css'
 
 type WageRecord = {
@@ -223,7 +224,7 @@ function MainApp({ session }: { session: Session }) {
                 <div key={r.id} className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: r.color || '#3B82F6' }}></div>
               ))}
             </div>
-            <span className="text-[10px] text-blue-600 dark:text-orange-400 font-semibold leading-tight">
+            <span className="text-[10px] text-blue-600 dark:text-blue-400 font-bold leading-tight">
               {(totalAmount / 10000).toFixed(0)}만
             </span>
           </div>
@@ -234,51 +235,61 @@ function MainApp({ session }: { session: Session }) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex flex-col items-center pb-20 transition-colors duration-300">
-      <header className="w-full max-w-md p-5 pt-[calc(env(safe-area-inset-top)+1.5rem)] flex justify-between items-center sticky top-0 bg-gray-50/90 dark:bg-slate-900/90 backdrop-blur-xl z-40">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-gray-50 to-purple-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex flex-col items-center pb-20 transition-colors duration-500">
+      <header className="w-full max-w-md p-5 pt-[calc(env(safe-area-inset-top)+1.5rem)] flex justify-between items-center sticky top-0 bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl z-40 border-b border-gray-200/50 dark:border-slate-800/50">
         <h1 className="text-2xl font-extrabold text-gray-900 dark:text-slate-50 tracking-tight flex items-center gap-2">
-          <img src={`${import.meta.env.BASE_URL}app_icon_v2.jpg`} alt="공돌이" className="w-8 h-8 rounded-lg shadow-sm" />
+          <img src={`${import.meta.env.BASE_URL}app_icon_v2.jpg`} alt="공돌이" className="w-8 h-8 rounded-xl shadow-md border border-gray-100 dark:border-slate-800" />
           공돌이
         </h1>
         <button 
           onClick={toggleDarkMode}
-          className="p-2 bg-white dark:bg-slate-800 rounded-full shadow-sm border border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors active:scale-95 cursor-pointer text-gray-600 dark:text-yellow-400"
+          className="p-2.5 bg-white/80 dark:bg-slate-800/80 rounded-full shadow-sm border border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors active:scale-95 cursor-pointer text-gray-600 dark:text-yellow-400 backdrop-blur-md"
           aria-label="다크 모드 전환"
         >
           {isDarkMode ? <Moon size={20} /> : <Sun size={20} />}
         </button>
       </header>
       
-      <main className="w-full max-w-md px-4 flex flex-col gap-4 pb-28">
-        {currentView === 'calendar' && (
-          <>
-            {/* Calendar Card */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-200 dark:border-slate-700/50 p-4 overflow-hidden relative">
-              <button 
-                onClick={() => {
-                  const now = new Date();
-                  setDate(now);
-                  setActiveStartDate(now);
-                }}
-                className="absolute top-4 right-4 z-10 px-3 py-1.5 text-xs font-bold bg-blue-50 dark:bg-blue-600 dark:bg-orange-500/10 text-blue-600 dark:text-orange-400 rounded-full hover:bg-blue-100 dark:bg-orange-900/30 active:scale-95 transition-all"
-              >
-                오늘
-              </button>
-          <style>{`
-            .react-calendar { border: none !important; width: 100% !important; font-family: inherit !important; background: transparent !important; }
-            .react-calendar__navigation { padding-right: 3rem; } /* Make room for Today button */
-            .react-calendar__navigation button { font-weight: 700; font-size: 1.1rem; border-radius: 0.5rem; }
-            .react-calendar__navigation button:enabled:hover, .react-calendar__navigation button:enabled:focus { background-color: #f3f4f6 !important; }
-            .react-calendar__month-view__weekdays { text-transform: uppercase; font-weight: 600; font-size: 0.75rem; color: #6b7280; padding-bottom: 0.5rem; }
-            .react-calendar__month-view__weekdays__weekday abbr { text-decoration: none; }
-            .react-calendar__tile { padding: 0.5em 0.25em !important; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; height: 60px; font-size: 0.9rem; font-weight: 500; border-radius: 0.75rem; color: #374151; }
-            .react-calendar__tile:enabled:hover, .react-calendar__tile:enabled:focus { background: #f3f4f6 !important; }
-            .react-calendar__tile--now { background: #eff6ff !important; color: #2563eb !important; }
-            .react-calendar__tile--active { background: #2563eb !important; color: white !important; }
-            .react-calendar__tile--active span { color: white !important; }
-            .react-calendar__tile--active .bg-blue-50 dark:bg-blue-600 dark:bg-orange-500/100 { background: white !important; }
-            .react-calendar__tile--active .bg-purple-500 { background: white !important; }
-          `}</style>
+      <main className="w-full max-w-md px-4 flex flex-col gap-4 mt-2 pb-28 relative">
+        <AnimatePresence mode="wait">
+          {currentView === 'calendar' && (
+            <motion.div 
+              key="calendar"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              {/* Calendar Card */}
+              <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] border border-white/50 dark:border-slate-700/50 p-5 overflow-hidden relative mb-4">
+                <button 
+                  onClick={() => {
+                    const now = new Date();
+                    setDate(now);
+                    setActiveStartDate(now);
+                  }}
+                  className="absolute top-5 right-5 z-10 px-3.5 py-1.5 text-xs font-bold bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-full hover:bg-blue-100 dark:hover:bg-blue-500/20 active:scale-95 transition-all shadow-sm"
+                >
+                  오늘
+                </button>
+            <style>{`
+              .react-calendar { border: none !important; width: 100% !important; font-family: inherit !important; background: transparent !important; }
+              .react-calendar__navigation { padding-right: 4rem; margin-bottom: 0.5rem; } 
+              .react-calendar__navigation button { font-weight: 800; font-size: 1.15rem; border-radius: 1rem; color: inherit; }
+              .react-calendar__navigation button:enabled:hover, .react-calendar__navigation button:enabled:focus { background-color: rgba(0,0,0,0.04) !important; }
+              .dark .react-calendar__navigation button:enabled:hover, .dark .react-calendar__navigation button:enabled:focus { background-color: rgba(255,255,255,0.05) !important; }
+              .react-calendar__month-view__weekdays { text-transform: uppercase; font-weight: 700; font-size: 0.75rem; color: #94a3b8; padding-bottom: 0.75rem; }
+              .react-calendar__month-view__weekdays__weekday abbr { text-decoration: none; }
+              .react-calendar__tile { padding: 0.5em 0.25em !important; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; height: 68px; font-size: 0.95rem; font-weight: 600; border-radius: 1rem; color: inherit; transition: all 0.2s; }
+              .react-calendar__tile:enabled:hover, .react-calendar__tile:enabled:focus { background: rgba(0,0,0,0.04) !important; }
+              .dark .react-calendar__tile:enabled:hover, .dark .react-calendar__tile:enabled:focus { background: rgba(255,255,255,0.05) !important; }
+              .react-calendar__tile--now { background: #eff6ff !important; color: #2563eb !important; }
+              .dark .react-calendar__tile--now { background: rgba(59, 130, 246, 0.15) !important; color: #60a5fa !important; }
+              .react-calendar__tile--active { background: #2563eb !important; color: white !important; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3); }
+              .dark .react-calendar__tile--active { background: #3b82f6 !important; color: white !important; box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4); }
+              .react-calendar__tile--active span { color: white !important; }
+              .react-calendar__tile--active .text-blue-600, .react-calendar__tile--active .dark\\:text-blue-400 { color: white !important; }
+            `}</style>
           <Calendar 
             onChange={setDate as any} 
             value={date}
@@ -291,92 +302,99 @@ function MainApp({ session }: { session: Session }) {
         </div>
         
         {/* Daily Details List */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-200 dark:border-slate-700/50 p-5 min-h-[250px]">
-          <div className="flex justify-between items-center mb-5">
-            <h2 className="text-xl font-extrabold text-gray-900 dark:text-slate-50">
-              {format(date, 'M월 d일')} 내역
+        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] border border-white/50 dark:border-slate-700/50 p-6 min-h-[250px]">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-extrabold text-gray-900 dark:text-slate-50 tracking-tight">
+              {format(date, 'M월 d일')} 기록
             </h2>
             {selectedRecords.length > 0 && (
-              <span className="text-sm font-semibold text-blue-600 dark:text-orange-400 bg-blue-50 dark:bg-blue-600 dark:bg-orange-500/10 px-3 py-1 rounded-full">
+              <span className="text-sm font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 px-3 py-1.5 rounded-full shadow-sm">
                 총 {selectedRecords.reduce((sum, r) => sum + r.amount, 0).toLocaleString()}원
               </span>
             )}
           </div>
 
           {selectedRecords.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 text-gray-900 dark:text-gray-400 dark:text-slate-500">
-              <div className="w-16 h-16 bg-gray-50 dark:bg-slate-900 rounded-full flex items-center justify-center mb-3">
-                <DollarSign size={24} className="text-gray-300" />
+            <div className="flex flex-col items-center justify-center py-12 text-gray-900 dark:text-gray-400 dark:text-slate-500">
+              <div className="w-16 h-16 bg-gray-50/50 dark:bg-slate-900/50 rounded-[2rem] flex items-center justify-center mb-4 shadow-inner border border-gray-100 dark:border-slate-800">
+                <DollarSign size={28} className="text-gray-300 dark:text-slate-600" />
               </div>
-              <p className="text-sm font-medium text-gray-500 dark:text-slate-400">등록된 현장 내역이 없습니다</p>
+              <p className="text-sm font-semibold text-gray-500 dark:text-slate-400 tracking-tight">등록된 현장 내역이 없습니다</p>
             </div>
           ) : (
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-4">
               {selectedRecords.map(record => {
                 const isItemSchedule = record.amount === 0 && !record.poomsu
                 const isExpanded = expandedRecordId === record.id
                 return (
-                  <div key={record.id} className="bg-gray-50 dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-gray-200 dark:border-slate-700/50 flex flex-col relative overflow-hidden shadow-sm">
-                    <div className="p-4 flex flex-col gap-2">
+                  <div key={record.id} className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 flex flex-col relative overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                    <div className="p-4 flex flex-col gap-2 cursor-pointer" onClick={() => toggleExpand(record.id)}>
                       <div className="flex justify-between items-start">
-                        <div className="flex items-center gap-1.5 text-gray-800 dark:text-slate-100 font-bold">
-                          {isItemSchedule ? <CalendarIcon size={16} className="text-purple-500 dark:text-emerald-500" /> : <MapPin size={16} className="text-blue-500 dark:text-orange-500" />}
+                        <div className="flex items-center gap-2 text-gray-900 dark:text-slate-50 font-extrabold">
+                          <div className={`p-1.5 rounded-lg ${isItemSchedule ? 'bg-purple-50 dark:bg-emerald-500/10' : 'bg-blue-50 dark:bg-blue-500/10'}`}>
+                            {isItemSchedule ? <CalendarIcon size={16} className="text-purple-500 dark:text-emerald-400" /> : <MapPin size={16} className="text-blue-600 dark:text-blue-400" />}
+                          </div>
                           {record.siteName}
                         </div>
                         <div className="flex items-center gap-3">
-                          <div className={`font-bold ${isItemSchedule ? 'text-purple-600 dark:text-emerald-400' : 'text-blue-600 dark:text-orange-400'}`}>
+                          <div className={`font-extrabold ${isItemSchedule ? 'text-purple-600 dark:text-emerald-400' : 'text-blue-600 dark:text-blue-400'}`}>
                             {isItemSchedule ? '일정' : `${record.amount.toLocaleString()}원`}
                           </div>
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); toggleExpand(record.id); }}
-                            className="p-1 -mr-2 text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition-colors"
-                          >
+                          <button className="p-1 -mr-2 text-gray-400 dark:text-slate-500 transition-colors">
                             <MoreVertical size={20} />
                           </button>
                         </div>
                       </div>
                       {(record.taskContent || record.memo) && (
-                        <div className="flex flex-col text-gray-600 dark:text-slate-300 text-sm mt-1.5 pr-8 leading-relaxed">
-                          {record.taskContent && <p className="font-semibold text-gray-700 dark:text-slate-200">[{record.taskContent}]</p>}
-                          {record.memo && <p>{record.memo}</p>}
+                        <div className="flex flex-col text-gray-600 dark:text-slate-400 text-sm mt-1 pr-8 leading-relaxed font-medium">
+                          {record.taskContent && <span className="font-bold text-gray-800 dark:text-slate-300">[{record.taskContent}]</span>}
+                          {record.memo && <span>{record.memo}</span>}
                         </div>
                       )}
                     </div>
                     
                     {/* Expandable Action Menu */}
-                    {isExpanded && (
-                      <div className="flex border-t border-gray-100 dark:border-gray-200 dark:border-slate-700/50 bg-gray-50/50 dark:bg-white dark:bg-slate-800/50">
-                        <button 
-                          onClick={() => { openEdit(record); setExpandedRecordId(null); }} 
-                          className="flex-1 py-3 flex items-center justify-center gap-2 text-sm font-semibold text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:text-orange-400 transition-colors"
+                    <AnimatePresence>
+                      {isExpanded && (
+                        <motion.div 
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="flex border-t border-gray-100 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-900/30 overflow-hidden"
                         >
-                          <Edit2 size={16} /> 수정
-                        </button>
-                        <div className="w-[1px] bg-gray-100 dark:bg-slate-700/50"></div>
-                        <button 
-                          onClick={() => { handleDelete(record.id); setExpandedRecordId(null); }} 
-                          className="flex-1 py-3 flex items-center justify-center gap-2 text-sm font-semibold text-gray-700 dark:text-slate-300 hover:text-red-500 transition-colors"
-                        >
-                          <Trash2 size={16} /> 삭제
-                        </button>
-                      </div>
-                    )}
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); openEdit(record); setExpandedRecordId(null); }} 
+                            className="flex-1 py-3.5 flex items-center justify-center gap-2 text-sm font-bold text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors active:bg-gray-100 dark:active:bg-slate-800 cursor-pointer"
+                          >
+                            <Edit2 size={16} /> 수정
+                          </button>
+                          <div className="w-[1px] bg-gray-200 dark:bg-slate-700 my-2"></div>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); handleDelete(record.id); setExpandedRecordId(null); }} 
+                            className="flex-1 py-3.5 flex items-center justify-center gap-2 text-sm font-bold text-gray-700 dark:text-slate-300 hover:text-red-500 dark:hover:text-red-400 transition-colors active:bg-gray-100 dark:active:bg-slate-800 cursor-pointer"
+                          >
+                            <Trash2 size={16} /> 삭제
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 )
               })}
             </div>
           )}
         </div>
-        </>
+        </motion.div>
         )}
 
-        {currentView === 'stats' && <Stats records={records} />}
+        {currentView === 'stats' && <motion.div key="stats" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><Stats records={records} /></motion.div>}
 
-        {currentView === 'settings' && <Settings session={session} />}
+        {currentView === 'settings' && <motion.div key="settings" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><Settings session={session} /></motion.div>}
 
-        {currentView === 'site' && <SiteManager records={records} setCurrentView={setCurrentView} />}
+        {currentView === 'site' && <motion.div key="site" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><SiteManager records={records} setCurrentView={setCurrentView} /></motion.div>}
 
-        {currentView === 'settlement' && <SettlementManager records={records} setCurrentView={setCurrentView} onUpdateStatus={handleUpdateStatus} />}
+        {currentView === 'settlement' && <motion.div key="settlement" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><SettlementManager records={records} setCurrentView={setCurrentView} onUpdateStatus={handleUpdateStatus} /></motion.div>}
+      </AnimatePresence>
 
 
       </main>
@@ -410,32 +428,52 @@ function MainApp({ session }: { session: Session }) {
       </nav>
 
       {/* Floating Action Button (Only on home) */}
-      {currentView === 'calendar' && (
-        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] w-full max-w-md px-4 pointer-events-none flex justify-end z-20">
-          <button 
-            onClick={() => { resetForm(); setIsModalOpen(true); }}
-            className="w-14 h-14 bg-blue-600 dark:bg-orange-500 text-white rounded-full shadow-lg shadow-blue-200 dark:shadow-orange-900/50 flex items-center justify-center pointer-events-auto hover:bg-blue-700 dark:bg-orange-600 active:scale-95 transition-all cursor-pointer"
+      <AnimatePresence>
+        {currentView === 'calendar' && (
+          <motion.div 
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            className="fixed bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] w-full max-w-md px-4 pointer-events-none flex justify-end z-30"
           >
-            <Plus size={28} />
-          </button>
-        </div>
-      )}
+            <button 
+              onClick={() => { resetForm(); setIsModalOpen(true); }}
+              className="w-16 h-16 bg-blue-600 dark:bg-blue-500 text-white rounded-[1.25rem] shadow-xl shadow-blue-300/50 dark:shadow-blue-900/50 flex items-center justify-center pointer-events-auto hover:bg-blue-700 dark:hover:bg-blue-600 active:scale-90 transition-all cursor-pointer rotate-0 hover:rotate-90 duration-300"
+            >
+              <Plus size={32} strokeWidth={2.5} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Add Record Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/40 dark:bg-black/70 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4">
-          <div className="bg-white dark:bg-slate-800 w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:fade-in duration-200">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-slate-50">
-                {format(date, 'M월 d일')} {editingId ? '기록 수정' : '기록 추가'}
-              </h3>
-              <button 
-                onClick={() => { setIsModalOpen(false); resetForm(); }}
-                className="px-3 py-2 bg-gray-100 dark:bg-slate-700 rounded-xl text-sm font-bold text-gray-600 dark:text-slate-400 hover:bg-gray-200 dark:bg-slate-600 cursor-pointer"
-              >
-                닫기
-              </button>
-            </div>
+      <AnimatePresence>
+        {isModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 dark:bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4"
+          >
+            <motion.div 
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="bg-white dark:bg-slate-800 w-full max-w-md rounded-t-[2rem] sm:rounded-3xl p-7 shadow-2xl border-t sm:border border-white/20 dark:border-slate-700"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-extrabold text-gray-900 dark:text-slate-50 tracking-tight">
+                  {format(date, 'M월 d일')} {editingId ? '기록 수정' : '기록 추가'}
+                </h3>
+                <button 
+                  onClick={() => { setIsModalOpen(false); resetForm(); }}
+                  className="px-4 py-2 bg-gray-100/80 dark:bg-slate-700/80 rounded-xl text-sm font-bold text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-600 cursor-pointer transition-colors"
+                >
+                  닫기
+                </button>
+              </div>
             
             <form onSubmit={handleAddRecord} className="flex flex-col gap-4">
               <div className="flex bg-gray-100 dark:bg-slate-700 p-1 rounded-xl mb-2">
@@ -566,9 +604,10 @@ function MainApp({ session }: { session: Session }) {
                 저장하기
               </button>
             </form>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Add Record Modal Ends */}
     </div>
