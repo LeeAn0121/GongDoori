@@ -131,10 +131,10 @@ function MainApp({ session }: { session: Session }) {
       date: selectedDateStr,
       site_name: siteName,
       task_content: taskContent,
-      amount: isSchedule ? 0 : parseInt(amount, 10),
+      amount: isSchedule ? 0 : (parseInt(amount, 10) || 0),
       tax_deduction: taxDeduction,
       poomsu,
-      expenses: expenses ? parseInt(expenses, 10) : 0,
+      expenses: expenses ? (parseInt(expenses, 10) || 0) : 0,
       color,
       memo
     }

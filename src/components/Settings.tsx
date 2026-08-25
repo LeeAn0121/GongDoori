@@ -61,14 +61,14 @@ export default function Settings({ session }: { session: Session }) {
     const { data: teamData, error: teamError } = await supabase.from('teams').insert([{ name: newTeamName, invite_code: code }]).select();
     
     if (teamError || !teamData) {
-      await Dialog.alert({title: '오류', message: '팀 생성 실패'});
+      await Dialog.alert({title: '오류', message: '팀 생성 실패: ' + (teamError?.message || '알 수 없는 오류')});
       return;
     }
     const teamId = teamData[0].id;
     const { error: memberError } = await supabase.from('team_members').insert([{ team_id: teamId, user_id: session.user.id }]);
     
     if (memberError) {
-      await Dialog.alert({title: '오류', message: '팀 멤버 등록 실패'});
+      await Dialog.alert({title: '오류', message: '팀 멤버 등록 실패: ' + memberError.message});
       return;
     }
     await Dialog.alert({title: '성공', message: `팀이 생성되었습니다! 초대 코드: ${code}`});
@@ -88,7 +88,7 @@ export default function Settings({ session }: { session: Session }) {
     
     const { error } = await supabase.from('team_members').insert([{ team_id: teamData.id, user_id: session.user.id }]);
     if (error) {
-      await Dialog.alert({title: '오류', message: '이미 가입된 팀이거나 가입에 실패했습니다.'});
+      await Dialog.alert({title: '오류', message: '이미 가입된 팀이거나 가입에 실패했습니다: ' + error.message});
       return;
     }
     await Dialog.alert({title: '성공', message: `'${teamData.name}' 팀에 가입되었습니다!`});
@@ -99,7 +99,11 @@ export default function Settings({ session }: { session: Session }) {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    const { value } = await Dialog.confirm({ title: '로그아웃', message: '정말로 로그아웃 하시겠습니까?' });
+    if (value) {
+      await supabase.auth.signOut();
+      window.location.reload();
+    }
   };
 
   const handleEditProfile = async () => {
@@ -127,6 +131,7 @@ export default function Settings({ session }: { session: Session }) {
     if (value) {
       await supabase.from('profiles').delete().eq('id', session.user.id);
       await supabase.auth.signOut();
+      window.location.reload();
     }
   };
 
@@ -342,9 +347,34 @@ export default function Settings({ session }: { session: Session }) {
           <ListItem icon={Wallet} title="계좌번호" subtitle="정산 요청 시 자동으로 같이 보내드려요" value={accountNumber} onClick={handleUpdateAccount} />
           <ListItem icon={Monitor} title="테마" value={themeMode === 'system' ? '시스템' : (themeMode === 'dark' ? '다크' : '라이트')} onClick={handleChangeTheme} />
           <ListItem icon={Palette} title="메인 색상" value={mainColor} onClick={handleUpdateMainColor} />
-          <ListItem icon={CalendarDays} title="캘린더 구독" subtitle="다른 캘린더 앱(구글, 애플 등)과 연동해요" onClick={() => setIsCalSubOpen(true)} />
+          <ListItem 
+            icon={CalendarDays} 
+            title="캘린더 구독" 
+            subtitle="다른 캘린더 앱(구글, 애플 등)과 연동해요" 
+            onClick={async () => {
+              if (!isPremium) {
+                const { Dialog } = await import('@capacitor/dialog');
+                await Dialog.alert({ title: '프리미엄 기능', message: '캘린더 구독(외부 앱 연동) 기능은 프리미엄 구독 시 이용 가능합니다.' });
+                return;
+              }
+              setIsCalSubOpen(true);
+            }} 
+          />
           <ListItem icon={HelpCircle} title="앱 사용법 다시 보기" subtitle="달력·정산·통계 등 각 탭 설명을 처음부터 다시 봐요" onClick={handleRestartTutorial} />
-          <ListItem icon={CalendarDays} title="달력 주간 합계" subtitle="각 주 수입 합계를 달력에 표시" value={showWeeklyTotal ? "켜짐" : "꺼짐"} onClick={handleToggleWeeklyTotal} />
+          <ListItem 
+            icon={CalendarDays} 
+            title="달력 주간 합계" 
+            subtitle="각 주 수입 합계를 달력에 표시" 
+            value={showWeeklyTotal ? "켜짐" : "꺼짐"} 
+            onClick={async () => {
+              if (!isPremium) {
+                const { Dialog } = await import('@capacitor/dialog');
+                await Dialog.alert({ title: '프리미엄 기능', message: '달력 주간 합계 표시 기능은 프리미엄 구독 시 이용 가능합니다.' });
+                return;
+              }
+              handleToggleWeeklyTotal();
+            }} 
+          />
         </div>
 
         {/* Work Settings */}

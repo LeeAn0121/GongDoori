@@ -223,18 +223,34 @@ export default function Stats({ records }: { records: any[] }) {
           <Table size={18} /> 엑셀 다운로드
         </button>
         <button 
-          onClick={exportToPDF}
-          className="flex-1 bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 py-3.5 rounded-2xl font-extrabold text-sm shadow-sm hover:bg-blue-500/20 dark:hover:bg-blue-500/30 transition-all flex items-center justify-center gap-2 border border-blue-200 dark:border-blue-800"
+          onClick={async () => {
+            if (localStorage.getItem('isPremium') !== 'true') {
+              const { Dialog } = await import('@capacitor/dialog');
+              await Dialog.alert({ title: '프리미엄 기능', message: '인건비 명세서(PDF) 양식 출력은 프리미엄 구독 시 이용 가능합니다. 설정에서 가입해주세요.' });
+              return;
+            }
+            exportToPDF();
+          }}
+          className="flex-1 bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 py-3.5 rounded-2xl font-extrabold text-sm shadow-sm hover:bg-blue-500/20 dark:hover:bg-blue-500/30 transition-all flex items-center justify-center gap-2 border border-blue-200 dark:border-blue-800 relative overflow-hidden group"
         >
+          {localStorage.getItem('isPremium') !== 'true' && <div className="absolute inset-0 bg-white/40 dark:bg-black/40 z-10 flex items-center justify-center backdrop-blur-[1px]"><span className="bg-black/70 text-white text-[10px] px-2 py-0.5 rounded-full">PRO</span></div>}
           <FileText size={18} /> 인건비 명세서 PDF
         </button>
       </div>
 
       {/* 종합소득세 예상 계산기 Button */}
       <button 
-        onClick={() => setIsTaxCalcOpen(true)}
-        className="w-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 py-4 rounded-2xl font-extrabold text-[15px] shadow-sm hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-all flex items-center justify-center gap-2 border border-indigo-100 dark:border-indigo-800/50 no-print"
+        onClick={async () => {
+          if (localStorage.getItem('isPremium') !== 'true') {
+            const { Dialog } = await import('@capacitor/dialog');
+            await Dialog.alert({ title: '프리미엄 기능', message: '종합소득세 예상 계산기는 프리미엄 구독 시 이용 가능합니다. 설정에서 가입해주세요.' });
+            return;
+          }
+          setIsTaxCalcOpen(true);
+        }}
+        className="w-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 py-4 rounded-2xl font-extrabold text-[15px] shadow-sm hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-all flex items-center justify-center gap-2 border border-indigo-100 dark:border-indigo-800/50 no-print relative overflow-hidden group"
       >
+        {localStorage.getItem('isPremium') !== 'true' && <div className="absolute inset-0 bg-white/40 dark:bg-black/40 z-10 flex items-center justify-center backdrop-blur-[1px]"><span className="bg-black/70 text-white text-[10px] px-2 py-0.5 rounded-full">PRO</span></div>}
         <Calculator size={18} /> 종합소득세 예상 계산기
       </button>
 
