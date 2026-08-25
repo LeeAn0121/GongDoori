@@ -382,47 +382,30 @@ function MainApp({ session }: { session: Session }) {
       </main>
 
       {/* Bottom Navigation Bar */}
-      <nav className="fixed bottom-0 w-full max-w-md bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 pb-[env(safe-area-inset-bottom)] z-40 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-        <div className="flex justify-around items-center h-16">
-          <button 
-            onClick={() => setCurrentView('calendar')} 
-            className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${currentView === 'calendar' ? 'text-blue-600 dark:text-orange-400' : 'text-gray-400 dark:text-slate-500 hover:text-gray-600'}`}
-          >
-            <CalendarIcon size={24} className={currentView === 'calendar' ? 'fill-blue-50 dark:fill-orange-900/30' : ''} />
-            <span className="text-[10px] font-bold">캘린더</span>
-          </button>
-          
-          <button 
-            onClick={() => setCurrentView('site')} 
-            className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${currentView === 'site' ? 'text-blue-600 dark:text-orange-400' : 'text-gray-400 dark:text-slate-500 hover:text-gray-600'}`}
-          >
-            <MapPin size={24} className={currentView === 'site' ? 'fill-blue-50 dark:fill-orange-900/30' : ''} />
-            <span className="text-[10px] font-bold">작업기록</span>
-          </button>
-          
-          <button 
-            onClick={() => setCurrentView('settlement')} 
-            className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${currentView === 'settlement' ? 'text-blue-600 dark:text-orange-400' : 'text-gray-400 dark:text-slate-500 hover:text-gray-600'}`}
-          >
-            <DollarSign size={24} className={currentView === 'settlement' ? 'fill-blue-50 dark:fill-orange-900/30' : ''} />
-            <span className="text-[10px] font-bold">내 지갑</span>
-          </button>
-          
-          <button 
-            onClick={() => setCurrentView('stats')} 
-            className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${currentView === 'stats' ? 'text-blue-600 dark:text-orange-400' : 'text-gray-400 dark:text-slate-500 hover:text-gray-600'}`}
-          >
-            <BarChart2 size={24} className={currentView === 'stats' ? 'fill-blue-50 dark:fill-orange-900/30' : ''} />
-            <span className="text-[10px] font-bold">리포트</span>
-          </button>
-
-          <button 
-            onClick={() => setCurrentView('settings')} 
-            className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${currentView === 'settings' ? 'text-blue-600 dark:text-orange-400' : 'text-gray-400 dark:text-slate-500 hover:text-gray-600'}`}
-          >
-            <SettingsIcon size={24} className={currentView === 'settings' ? 'fill-blue-50 dark:fill-orange-900/30' : ''} />
-            <span className="text-[10px] font-bold">내 정보</span>
-          </button>
+      <nav className="fixed bottom-0 w-full max-w-md bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-gray-200/80 dark:border-slate-700/80 pb-[env(safe-area-inset-bottom)] z-40 shadow-[0_-8px_30px_rgba(0,0,0,0.04)]">
+        <div className="flex justify-around items-center h-16 px-2">
+          {[
+            { id: 'calendar', icon: CalendarIcon, label: '캘린더' },
+            { id: 'site', icon: MapPin, label: '작업현장' },
+            { id: 'settlement', icon: DollarSign, label: '내 지갑' },
+            { id: 'stats', icon: BarChart2, label: '리포트' },
+            { id: 'settings', icon: SettingsIcon, label: '내 정보' },
+          ].map((item) => {
+            const isActive = currentView === item.id;
+            return (
+              <button 
+                key={item.id}
+                onClick={() => setCurrentView(item.id as any)} 
+                className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-all duration-300 ${isActive ? 'text-blue-600 dark:text-orange-400 scale-110' : 'text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300'}`}
+              >
+                {isActive && (
+                  <span className="absolute -top-3.5 w-8 h-1 rounded-full bg-blue-600 dark:bg-orange-500 animate-in fade-in zoom-in duration-300"></span>
+                )}
+                <item.icon size={24} strokeWidth={isActive ? 2.5 : 2} className={isActive ? 'drop-shadow-sm' : ''} />
+                <span className={`text-[10px] ${isActive ? 'font-extrabold' : 'font-semibold'}`}>{item.label}</span>
+              </button>
+            )
+          })}
         </div>
       </nav>
 
