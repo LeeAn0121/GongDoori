@@ -21,6 +21,13 @@ export default function Settings({ session }: { session: Session }) {
   const [joinMessage, setJoinMessage] = useState('');
   const [supportContent, setSupportContent] = useState('');
   const [themeMode, setThemeMode] = useState(localStorage.getItem('themePreference') || 'system');
+  const [isPremium, setIsPremium] = useState(localStorage.getItem('isPremium') === 'true');
+  const [jobType, setJobType] = useState(localStorage.getItem('jobType') || '🏗️ 종합');
+  const [accountNumber, setAccountNumber] = useState(localStorage.getItem('accountNumber') || '미설정');
+  const [mainColor, setMainColor] = useState(localStorage.getItem('mainColor') || '블루');
+  const [showWeeklyTotal, setShowWeeklyTotal] = useState(localStorage.getItem('showWeeklyTotal') === 'true');
+  const [defaultWage, setDefaultWage] = useState(localStorage.getItem('defaultWage') || '미설정');
+  const [taxDeductionDefault, setTaxDeductionDefault] = useState(localStorage.getItem('taxDeductionDefault') === 'true');
   
   const [myTeams, setMyTeams] = useState<any[]>([]);
 
@@ -124,6 +131,14 @@ export default function Settings({ session }: { session: Session }) {
   };
 
   const handlePremiumPayment = async () => {
+    if (isPremium) {
+      const { value } = await Dialog.confirm({ title: '안내', message: '이미 프리미엄 사용 중입니다. 해지하시겠습니까?', okButtonTitle: '해지', cancelButtonTitle: '취소' });
+      if (value) {
+        setIsPremium(false);
+        localStorage.setItem('isPremium', 'false');
+      }
+      return;
+    }
     const { value } = await Dialog.confirm({
       title: '프리미엄 구독',
       message: '월 4,900원에 프리미엄 기능을 사용하시겠습니까? (현재 베타 기간 무료 가입)',
@@ -131,6 +146,8 @@ export default function Settings({ session }: { session: Session }) {
       cancelButtonTitle: '취소'
     });
     if (value) {
+      setIsPremium(true);
+      localStorage.setItem('isPremium', 'true');
       await Dialog.alert({ title: '성공', message: '프리미엄 구독이 완료되었습니다!' });
       setIsPremiumOpen(false);
     }
@@ -213,6 +230,64 @@ export default function Settings({ session }: { session: Session }) {
     }
   };
 
+  const handleUpdateJobType = async () => {
+    const result = await ActionSheet.showActions({
+      title: '직종 선택',
+      options: [{ title: '🏗️ 종합' }, { title: '🔨 철근' }, { title: '🪚 목수' }, { title: '⚡ 전기' }]
+    });
+    const jobs = ['🏗️ 종합', '🔨 철근', '🪚 목수', '⚡ 전기'];
+    if (result.index >= 0 && result.index < jobs.length) {
+      setJobType(jobs[result.index]);
+      localStorage.setItem('jobType', jobs[result.index]);
+    }
+  };
+
+  const handleUpdateAccount = async () => {
+    const { value, cancelled } = await Dialog.prompt({ title: '계좌번호 설정', message: '정산 시 보낼 계좌번호를 입력하세요', inputText: accountNumber === '미설정' ? '' : accountNumber });
+    if (!cancelled && value) {
+      setAccountNumber(value);
+      localStorage.setItem('accountNumber', value);
+    }
+  };
+
+  const handleUpdateMainColor = async () => {
+    const result = await ActionSheet.showActions({ title: '메인 색상 선택', options: [{ title: '블루' }, { title: '오렌지' }, { title: '그린' }] });
+    const colors = ['블루', '오렌지', '그린'];
+    if (result.index >= 0 && result.index < colors.length) {
+      setMainColor(colors[result.index]);
+      localStorage.setItem('mainColor', colors[result.index]);
+      await Dialog.alert({title:'안내', message:'색상이 변경되었습니다. (다음 업데이트에 앱 전반에 적용됩니다)'});
+    }
+  };
+
+  const handleRestartTutorial = async () => {
+    const { value } = await Dialog.confirm({ title: '앱 사용법', message: '튜토리얼을 다시 보시겠습니까?', okButtonTitle: '확인', cancelButtonTitle: '취소' });
+    if (value) {
+      localStorage.removeItem('hasSeenTutorial');
+      window.location.reload();
+    }
+  };
+
+  const handleToggleWeeklyTotal = () => {
+    const newVal = !showWeeklyTotal;
+    setShowWeeklyTotal(newVal);
+    localStorage.setItem('showWeeklyTotal', String(newVal));
+  };
+
+  const handleUpdateDefaultWage = async () => {
+    const { value, cancelled } = await Dialog.prompt({ title: '기본 일당 설정', message: '숫자만 입력하세요 (예: 150000)', inputText: defaultWage === '미설정' ? '' : defaultWage });
+    if (!cancelled && value) {
+      setDefaultWage(value);
+      localStorage.setItem('defaultWage', value);
+    }
+  };
+
+  const handleToggleTax = () => {
+    const newVal = !taxDeductionDefault;
+    setTaxDeductionDefault(newVal);
+    localStorage.setItem('taxDeductionDefault', String(newVal));
+  };
+
   const ListItem = ({ icon: Icon, title, subtitle, value, onClick, highlight = false }: any) => (
     <div onClick={onClick} className={`flex items-center justify-between p-4 cursor-pointer active:bg-gray-50 dark:active:bg-slate-700/50 transition-colors ${highlight ? 'bg-amber-50 dark:bg-amber-900/10 rounded-2xl mb-2 border border-amber-100 dark:border-amber-900/20' : 'border-b border-gray-100 dark:border-slate-800 last:border-0'}`}>
       <div className="flex items-center gap-4">
@@ -255,28 +330,28 @@ export default function Settings({ session }: { session: Session }) {
         {/* Premium */}
         <ListItem 
           icon={Sparkles} 
-          title="프리미엄" 
-          subtitle="더 많은 기능 살펴보기" 
-          highlight={true}
-          onClick={() => setIsPremiumOpen(true)}
+          title={isPremium ? "프리미엄 사용 중" : "프리미엄"} 
+          subtitle={isPremium ? "모든 기능을 사용 중입니다" : "더 많은 기능 살펴보기"} 
+          highlight={!isPremium}
+          onClick={() => isPremium ? handlePremiumPayment() : setIsPremiumOpen(true)}
         />
 
         {/* General Settings */}
         <div className="bg-white dark:bg-slate-800 rounded-3xl overflow-hidden mb-6 shadow-sm border border-gray-100 dark:border-slate-700/50">
-          <ListItem icon={Hammer} title="내 직종" value="🏗️ 종합" onClick={() => {}} />
-          <ListItem icon={Wallet} title="계좌번호" subtitle="정산 요청 시 자동으로 같이 보내드려요" value="미설정" onClick={() => {}} />
+          <ListItem icon={Hammer} title="내 직종" value={jobType} onClick={handleUpdateJobType} />
+          <ListItem icon={Wallet} title="계좌번호" subtitle="정산 요청 시 자동으로 같이 보내드려요" value={accountNumber} onClick={handleUpdateAccount} />
           <ListItem icon={Monitor} title="테마" value={themeMode === 'system' ? '시스템' : (themeMode === 'dark' ? '다크' : '라이트')} onClick={handleChangeTheme} />
-          <ListItem icon={Palette} title="메인 색상" onClick={() => {}} />
+          <ListItem icon={Palette} title="메인 색상" value={mainColor} onClick={handleUpdateMainColor} />
           <ListItem icon={CalendarDays} title="캘린더 구독" subtitle="다른 캘린더 앱(구글, 애플 등)과 연동해요" onClick={() => setIsCalSubOpen(true)} />
-          <ListItem icon={HelpCircle} title="앱 사용법 다시 보기" subtitle="달력·정산·통계 등 각 탭 설명을 처음부터 다시 봐요" onClick={() => {}} />
-          <ListItem icon={CalendarDays} title="달력 주간 합계" subtitle="각 주 수입 합계를 달력에 표시" onClick={() => {}} />
+          <ListItem icon={HelpCircle} title="앱 사용법 다시 보기" subtitle="달력·정산·통계 등 각 탭 설명을 처음부터 다시 봐요" onClick={handleRestartTutorial} />
+          <ListItem icon={CalendarDays} title="달력 주간 합계" subtitle="각 주 수입 합계를 달력에 표시" value={showWeeklyTotal ? "켜짐" : "꺼짐"} onClick={handleToggleWeeklyTotal} />
         </div>
 
         {/* Work Settings */}
         <h3 className="text-sm font-extrabold text-gray-500 px-4 mb-3">작업</h3>
         <div className="bg-white dark:bg-slate-800 rounded-3xl overflow-hidden mb-6 shadow-sm border border-gray-100 dark:border-slate-700/50">
-          <ListItem icon={DollarSign} title="기본 일당" subtitle="새 현장 추가 시 자동 입력" value="미설정" onClick={() => {}} />
-          <ListItem icon={Calculator} title="인적공제 3.3% 기본값" subtitle="새 현장 추가 시 공제 체크 자동 적용" onClick={() => {}} />
+          <ListItem icon={DollarSign} title="기본 일당" subtitle="새 현장 추가 시 자동 입력" value={defaultWage} onClick={handleUpdateDefaultWage} />
+          <ListItem icon={Calculator} title="인적공제 3.3% 기본값" subtitle="새 현장 추가 시 공제 체크 자동 적용" value={taxDeductionDefault ? "켜짐" : "꺼짐"} onClick={handleToggleTax} />
         </div>
 
         {/* Support */}
