@@ -96,7 +96,7 @@ export default function Auth() {
       <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-3xl shadow-lg border border-gray-100 dark:border-gray-200 dark:border-slate-700/50 p-8">
         <div className="flex flex-col items-center mb-8">
           <div className="w-20 h-20 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200 dark:shadow-orange-900/50 mb-4 overflow-hidden border-2 border-transparent">
-            <img src="/app_icon_v2.jpg" alt="공돌이 앱 아이콘" className="w-full h-full object-cover" />
+            <img src={`${import.meta.env.BASE_URL}app_icon_v2.jpg`} alt="공돌이 앱 아이콘" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-2xl font-extrabold text-gray-900 dark:text-slate-50">공돌이</h1>
           <p className="text-gray-500 dark:text-slate-400 font-medium mt-2">일당 관리부터 팀 관리까지 한 번에</p>

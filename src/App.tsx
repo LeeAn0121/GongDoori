@@ -227,7 +227,7 @@ function MainApp({ session }: { session: Session }) {
     <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex flex-col items-center pb-20 transition-colors duration-300">
       <header className="w-full max-w-md p-5 pt-[calc(env(safe-area-inset-top)+1.5rem)] flex justify-between items-center sticky top-0 bg-gray-50/90 dark:bg-slate-900/90 backdrop-blur-xl z-40">
         <h1 className="text-2xl font-extrabold text-gray-900 dark:text-slate-50 tracking-tight flex items-center gap-2">
-          <img src="/app_icon_v2.jpg" alt="공돌이" className="w-8 h-8 rounded-lg shadow-sm" />
+          <img src={`${import.meta.env.BASE_URL}app_icon_v2.jpg`} alt="공돌이" className="w-8 h-8 rounded-lg shadow-sm" />
           공돌이
         </h1>
       </header>
