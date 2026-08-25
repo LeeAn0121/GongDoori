@@ -61,6 +61,7 @@ function MainApp({ session }: { session: Session }) {
   const [isDailyDetailOpen, setIsDailyDetailOpen] = useState(false)
   const [isSchedule, setIsSchedule] = useState(false)
   const [expandedRecordId, setExpandedRecordId] = useState<string | null>(null)
+  const [inlineMemo, setInlineMemo] = useState('')
 
   const selectedDateStr = format(date, 'yyyy-MM-dd')
   const selectedRecords = records.filter(r => r.date === selectedDateStr)
@@ -158,6 +159,26 @@ function MainApp({ session }: { session: Session }) {
     
     setIsModalOpen(false)
     resetForm()
+  }
+
+  const handleSaveInlineMemo = async () => {
+    if (!inlineMemo.trim()) return
+    const record = {
+      date: format(date, 'yyyy-MM-dd'),
+      siteName: '개인 메모',
+      taskContent: '',
+      memo: inlineMemo,
+      amount: 0,
+      poomsu: 0,
+      expenses: 0,
+      color: '#8B5CF6',
+      status: '완료'
+    }
+    const { data, error } = await supabase.from('wage_records').insert([record]).select()
+    if (!error && data) {
+      setRecords([...records, data[0]])
+      setInlineMemo('')
+    }
   }
 
   const toggleExpand = (id: string) => {
@@ -397,19 +418,30 @@ function MainApp({ session }: { session: Session }) {
                   </div>
                 </div>
 
-                {/* Add Record / Memo Buttons in Daily Detail Modal */}
-                <div className="flex gap-3 mb-6 shrink-0">
+                {/* Quick Memo Input & Add Work Button */}
+                <div className="flex flex-col gap-3 mb-6 shrink-0">
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      value={inlineMemo}
+                      onChange={(e) => setInlineMemo(e.target.value)}
+                      placeholder="오늘 한 일 (개인 메모) 입력..."
+                      className="flex-1 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      onKeyDown={(e) => e.key === 'Enter' && handleSaveInlineMemo()}
+                    />
+                    <button 
+                      onClick={handleSaveInlineMemo}
+                      className="bg-purple-100 dark:bg-slate-700 text-purple-700 dark:text-white px-4 py-3 rounded-xl font-extrabold text-sm hover:bg-purple-200 transition-colors whitespace-nowrap"
+                    >
+                      저장
+                    </button>
+                  </div>
+                  
                   <button 
                     onClick={() => { resetForm(); setIsSchedule(false); setIsModalOpen(true); }}
-                    className="flex-1 bg-blue-600 dark:bg-blue-500 text-white py-3.5 rounded-2xl font-extrabold text-sm shadow-sm hover:bg-blue-700 active:scale-95 transition-all flex items-center justify-center gap-2"
+                    className="w-full bg-blue-600 dark:bg-blue-500 text-white py-3.5 rounded-xl font-extrabold text-sm shadow-sm hover:bg-blue-700 active:scale-95 transition-all flex items-center justify-center gap-2"
                   >
-                    <Plus size={18} strokeWidth={3} /> 일당 기록
-                  </button>
-                  <button 
-                    onClick={() => { resetForm(); setIsSchedule(true); setIsModalOpen(true); }}
-                    className="flex-1 bg-purple-100 dark:bg-slate-700 text-purple-700 dark:text-white py-3.5 rounded-2xl font-extrabold text-sm shadow-sm hover:bg-purple-200 active:scale-95 transition-all flex items-center justify-center gap-2"
-                  >
-                    <CalendarIcon size={18} strokeWidth={2.5} /> 일정 메모
+                    <Plus size={18} strokeWidth={3} /> 이날 작업 추가
                   </button>
                 </div>
 
