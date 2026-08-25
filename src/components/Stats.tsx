@@ -7,10 +7,11 @@ export default function Stats({ records }: { records: any[] }) {
   const chartData = useMemo(() => {
     const dataBySite: Record<string, { total: number, color: string }> = {};
     records.forEach(r => {
-      if (!dataBySite[r.siteName]) {
-        dataBySite[r.siteName] = { total: 0, color: r.color || '#3b82f6' };
+      const site = r.siteName || '미지정 현장';
+      if (!dataBySite[site]) {
+        dataBySite[site] = { total: 0, color: r.color || '#3b82f6' };
       }
-      dataBySite[r.siteName].total += r.amount;
+      dataBySite[site].total += Number(r.amount) || 0;
     });
     return Object.entries(dataBySite)
       .map(([name, data]) => ({ name, total: data.total, color: data.color }))
@@ -79,6 +80,7 @@ export default function Stats({ records }: { records: any[] }) {
                     outerRadius={90}
                     paddingAngle={3}
                     dataKey="total"
+                    nameKey="name"
                     stroke="none"
                   >
                     {chartData.map((entry, index) => (
