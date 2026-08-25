@@ -79,6 +79,22 @@ function MainApp({ session }: { session: Session }) {
     fetchRecords()
   }, [])
 
+  useEffect(() => {
+    const mainColorHex = localStorage.getItem('mainColor') || '#3B82F6';
+    const colorPalettes: Record<string, Record<number, string>> = {
+      '#3B82F6': { 50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd', 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a' },
+      '#EF4444': { 50: '#fef2f2', 100: '#fee2e2', 200: '#fecaca', 300: '#fca5a5', 400: '#f87171', 500: '#ef4444', 600: '#dc2626', 700: '#b91c1c', 800: '#991b1b', 900: '#7f1d1d' },
+      '#10B981': { 50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 300: '#6ee7b7', 400: '#34d399', 500: '#10b981', 600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b' },
+      '#8B5CF6': { 50: '#f5f3ff', 100: '#ede9fe', 200: '#ddd6fe', 300: '#c4b5fd', 400: '#a78bfa', 500: '#8b5cf6', 600: '#7c3aed', 700: '#6d28d9', 800: '#5b21b6', 900: '#4c1d95' },
+      '#F97316': { 50: '#fff7ed', 100: '#ffedd5', 200: '#fed7aa', 300: '#fdba74', 400: '#fb923c', 500: '#f97316', 600: '#ea580c', 700: '#c2410c', 800: '#9a3412', 900: '#7c2d12' },
+      '#6B7280': { 50: '#f9fafb', 100: '#f3f4f6', 200: '#e5e7eb', 300: '#d1d5db', 400: '#9ca3af', 500: '#6b7280', 600: '#4b5563', 700: '#374151', 800: '#1f2937', 900: '#111827' }
+    };
+    const palette = colorPalettes[mainColorHex] || colorPalettes['#3B82F6'];
+    for (const [key, value] of Object.entries(palette)) {
+      document.documentElement.style.setProperty(`--mc-${key}`, value);
+    }
+  }, []);
+
   const fetchRecords = async () => {
     const { data: recordsData, error: recordsError } = await supabase
       .from('wage_records')
@@ -302,13 +318,13 @@ function MainApp({ session }: { session: Session }) {
                   <div key={r.id} className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: r.color || '#3B82F6' }}></div>
                 ))}
               </div>
-              <span className="text-[10px] text-blue-600 dark:text-blue-400 font-bold leading-tight truncate px-1">
+              <span className="text-[10px] text-primary-600 dark:text-primary-400 font-bold leading-tight truncate px-1">
                 {(dayRecords.reduce((s, r) => s + r.amount, 0) / 10000).toFixed(0)}만
               </span>
             </>
           )}
           {weeklyTotal && (
-            <div className="absolute -top-6 -right-2 bg-blue-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-md shadow-md z-10 whitespace-nowrap hidden sm:block">
+            <div className="absolute -top-6 -right-2 bg-primary-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-md shadow-md z-10 whitespace-nowrap hidden sm:block">
               주: {(weeklyTotal / 10000).toFixed(0)}만
             </div>
           )}
@@ -319,10 +335,10 @@ function MainApp({ session }: { session: Session }) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-gray-50 to-purple-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex flex-col items-center pb-20 transition-colors duration-500">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50/50 via-gray-50 to-purple-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex flex-col items-center pb-20 transition-colors duration-500">
       <header className="w-full max-w-3xl px-5 pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-4 flex justify-between items-center z-40 relative">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-[0.85rem] overflow-hidden shadow-sm shadow-blue-900/5 dark:shadow-black/50 border-[1.5px] border-white dark:border-slate-700/50">
+          <div className="w-9 h-9 rounded-[0.85rem] overflow-hidden shadow-sm shadow-primary-900/5 dark:shadow-black/50 border-[1.5px] border-white dark:border-slate-700/50">
             <img src={`${import.meta.env.BASE_URL}app_icon_v2.jpg`} alt="공돌이" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">
@@ -388,11 +404,11 @@ function MainApp({ session }: { session: Session }) {
                     </span>
                     <span className="text-[10px] text-gray-500 font-semibold mt-1">품</span>
                   </div>
-                  <div className="flex flex-col items-center justify-center py-3 px-1 rounded-2xl bg-blue-50 dark:bg-blue-500/10 text-center">
-                    <span className="text-[15px] font-bold text-blue-600 dark:text-blue-400">
+                  <div className="flex flex-col items-center justify-center py-3 px-1 rounded-2xl bg-primary-50 dark:bg-primary-500/10 text-center">
+                    <span className="text-[15px] font-bold text-primary-600 dark:text-primary-400">
                       {(records.filter(r => r.date.startsWith(format(activeStartDate || date, 'yyyy-MM'))).reduce((sum, r) => sum + r.amount, 0) / 10000).toLocaleString(undefined, {maximumFractionDigits: 1})}<span className="text-[11px] font-semibold ml-0.5">만원</span>
                     </span>
-                    <span className="text-[10px] text-blue-500 font-semibold mt-1">총 일당</span>
+                    <span className="text-[10px] text-primary-500 font-semibold mt-1">총 일당</span>
                   </div>
                   <div className="flex flex-col items-center justify-center py-3 px-1 rounded-2xl bg-red-50 dark:bg-red-500/10 text-center">
                     <span className="text-[15px] font-bold text-red-600 dark:text-red-400">
@@ -410,7 +426,7 @@ function MainApp({ session }: { session: Session }) {
                     setDate(now);
                     setActiveStartDate(now);
                   }}
-                  className="absolute top-5 right-5 z-10 px-3.5 py-1.5 text-xs font-bold bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-full hover:bg-blue-100 dark:hover:bg-blue-500/20 active:scale-95 transition-all shadow-sm"
+                  className="absolute top-5 right-5 z-10 px-3.5 py-1.5 text-xs font-bold bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 rounded-full hover:bg-primary-100 dark:hover:bg-primary-500/20 active:scale-95 transition-all shadow-sm"
                 >
                   오늘
                 </button>
@@ -468,7 +484,7 @@ function MainApp({ session }: { session: Session }) {
                   </h2>
                   <div className="flex items-center gap-2">
                     {selectedRecords.length > 0 && (
-                      <span className="text-sm font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 px-3 py-1.5 rounded-full shadow-sm">
+                      <span className="text-sm font-bold text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-500/10 px-3 py-1.5 rounded-full shadow-sm">
                         총 {selectedRecords.reduce((sum, r) => sum + r.amount, 0).toLocaleString()}원
                       </span>
                     )}
@@ -486,7 +502,7 @@ function MainApp({ session }: { session: Session }) {
                       value={inlineMemo}
                       onChange={(e) => setInlineMemo(e.target.value)}
                       placeholder="오늘 한 일 (개인 메모) 입력..."
-                      className="flex-1 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      className="flex-1 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500/50"
                       onKeyDown={(e) => e.key === 'Enter' && handleSaveInlineMemo()}
                     />
                     <button 
@@ -499,7 +515,7 @@ function MainApp({ session }: { session: Session }) {
                   
                   <button 
                     onClick={() => { resetForm(); setIsSchedule(false); setIsModalOpen(true); }}
-                    className="w-full bg-blue-600 dark:bg-blue-500 text-white py-3.5 rounded-xl font-extrabold text-sm shadow-sm hover:bg-blue-700 active:scale-95 transition-all flex items-center justify-center gap-2"
+                    className="w-full bg-primary-600 dark:bg-primary-500 text-white py-3.5 rounded-xl font-extrabold text-sm shadow-sm hover:bg-primary-700 active:scale-95 transition-all flex items-center justify-center gap-2"
                   >
                     <Plus size={18} strokeWidth={3} /> 이날 작업 추가
                   </button>
@@ -522,13 +538,13 @@ function MainApp({ session }: { session: Session }) {
                           <div className="p-4 flex flex-col gap-2 cursor-pointer" onClick={() => toggleExpand(record.id)}>
                             <div className="flex justify-between items-start">
                               <div className="flex items-center gap-2 text-gray-900 dark:text-slate-50 font-extrabold">
-                                <div className={`p-1.5 rounded-lg ${isItemSchedule ? 'bg-purple-50 dark:bg-emerald-500/10' : 'bg-blue-50 dark:bg-blue-500/10'}`}>
-                                  {isItemSchedule ? <CalendarIcon size={16} className="text-purple-500 dark:text-emerald-400" /> : <MapPin size={16} className="text-blue-600 dark:text-blue-400" />}
+                                <div className={`p-1.5 rounded-lg ${isItemSchedule ? 'bg-purple-50 dark:bg-emerald-500/10' : 'bg-primary-50 dark:bg-primary-500/10'}`}>
+                                  {isItemSchedule ? <CalendarIcon size={16} className="text-purple-500 dark:text-emerald-400" /> : <MapPin size={16} className="text-primary-600 dark:text-primary-400" />}
                                 </div>
                                 {record.siteName}
                               </div>
                               <div className="flex items-center gap-3">
-                                <div className={`font-extrabold ${isItemSchedule ? 'text-purple-600 dark:text-emerald-400' : 'text-blue-600 dark:text-blue-400'}`}>
+                                <div className={`font-extrabold ${isItemSchedule ? 'text-purple-600 dark:text-emerald-400' : 'text-primary-600 dark:text-primary-400'}`}>
                                   {isItemSchedule ? '일정' : `${record.amount.toLocaleString()}원`}
                                 </div>
                                 <button className="p-1 -mr-2 text-gray-400 dark:text-slate-500 transition-colors">
@@ -555,7 +571,7 @@ function MainApp({ session }: { session: Session }) {
                               >
                                 <button 
                                   onClick={(e) => { e.stopPropagation(); openEdit(record); setExpandedRecordId(null); setIsDailyDetailOpen(false); }} 
-                                  className="flex-1 py-3.5 flex items-center justify-center gap-2 text-sm font-bold text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors active:bg-gray-100 dark:active:bg-slate-800 cursor-pointer"
+                                  className="flex-1 py-3.5 flex items-center justify-center gap-2 text-sm font-bold text-gray-700 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors active:bg-gray-100 dark:active:bg-slate-800 cursor-pointer"
                                 >
                                   <Edit2 size={16} /> 수정
                                 </button>
@@ -608,10 +624,10 @@ function MainApp({ session }: { session: Session }) {
               <button 
                 key={item.id}
                 onClick={() => setCurrentView(item.id as any)} 
-                className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-all duration-300 ${isActive ? 'text-blue-600 dark:text-blue-400 scale-105' : 'text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300'}`}
+                className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-all duration-300 ${isActive ? 'text-primary-600 dark:text-primary-400 scale-105' : 'text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300'}`}
               >
                 {isActive && (
-                  <span className="absolute top-0 w-8 h-1.5 rounded-b-full bg-blue-600 dark:bg-blue-500 animate-in fade-in zoom-in duration-300"></span>
+                  <span className="absolute top-0 w-8 h-1.5 rounded-b-full bg-primary-600 dark:bg-primary-500 animate-in fade-in zoom-in duration-300"></span>
                 )}
                 <item.icon size={24} strokeWidth={isActive ? 2.5 : 2} className={isActive ? 'drop-shadow-sm' : ''} />
                 <span className={`text-[10px] ${isActive ? 'font-extrabold' : 'font-semibold'}`}>{item.label}</span>
@@ -665,7 +681,7 @@ function MainApp({ session }: { session: Session }) {
                   value={siteName}
                   onChange={(e) => setSiteName(e.target.value)}
                   placeholder="예) 강남 아파트 현장"
-                  className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:bg-slate-800 transition-all font-medium text-[15px]"
+                  className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white dark:bg-slate-800 transition-all font-medium text-[15px]"
                 />
               </div>
               
@@ -676,7 +692,7 @@ function MainApp({ session }: { session: Session }) {
                   value={taskContent}
                   onChange={(e) => setTaskContent(e.target.value)}
                   placeholder="예) 목공 마감, 창호 설치" 
-                  className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:bg-slate-800 transition-all font-medium text-[15px]"
+                  className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white dark:bg-slate-800 transition-all font-medium text-[15px]"
                 />
               </div>
 
@@ -689,14 +705,14 @@ function MainApp({ session }: { session: Session }) {
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     placeholder="0" 
-                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:bg-slate-800 transition-all font-bold text-lg text-blue-600 dark:text-blue-400 placeholder:text-gray-400 placeholder:font-medium"
+                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white dark:bg-slate-800 transition-all font-bold text-lg text-primary-600 dark:text-primary-400 placeholder:text-gray-400 placeholder:font-medium"
                   />
                   <label className="flex items-center gap-2 cursor-pointer mt-3">
                     <input 
                       type="checkbox" 
                       checked={taxDeduction} 
                       onChange={(e) => setTaxDeduction(e.target.checked)}
-                      className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600"
+                      className="w-4 h-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500 dark:bg-slate-700 dark:border-slate-600"
                     />
                     <span className="text-[13px] font-semibold text-gray-500 dark:text-slate-400">인적공제 3.3% 공제 후 받음</span>
                   </label>
@@ -706,7 +722,7 @@ function MainApp({ session }: { session: Session }) {
                   <select 
                     value={poomsu} 
                     onChange={(e) => setPoomsu(Number(e.target.value))}
-                    className="w-full px-3 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:bg-slate-800 transition-all font-bold text-gray-900 dark:text-white"
+                    className="w-full px-3 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white dark:bg-slate-800 transition-all font-bold text-gray-900 dark:text-white"
                   >
                     <option value={1.0}>1품 — 하루</option>
                     <option value={0.5}>0.5품 — 반나절</option>
@@ -724,7 +740,7 @@ function MainApp({ session }: { session: Session }) {
                   <button 
                     type="button"
                     onClick={() => setExpenses('0')}
-                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-dashed border-gray-300 dark:border-slate-600 rounded-xl text-sm font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 transition-all text-left flex items-center gap-2"
+                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-dashed border-gray-300 dark:border-slate-600 rounded-xl text-sm font-bold text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-slate-800 transition-all text-left flex items-center gap-2"
                   >
                     <Plus size={16} /> + 경비 추가
                   </button>
@@ -734,7 +750,7 @@ function MainApp({ session }: { session: Session }) {
                     value={expenses}
                     onChange={(e) => setExpenses(e.target.value)}
                     placeholder="0" 
-                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:bg-slate-800 transition-all font-bold text-lg text-gray-900 dark:text-white placeholder:text-gray-400"
+                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white dark:bg-slate-800 transition-all font-bold text-lg text-gray-900 dark:text-white placeholder:text-gray-400"
                   />
                 )}
               </div>
@@ -768,14 +784,14 @@ function MainApp({ session }: { session: Session }) {
                         setDate(new Date(e.target.value));
                       }
                     }}
-                    className="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg text-sm font-bold border-none focus:ring-0"
+                    className="px-3 py-1.5 bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 rounded-lg text-sm font-bold border-none focus:ring-0"
                   />
                 </div>
               </div>
               
               <button 
                 type="submit"
-                className="w-full mt-4 bg-blue-600 dark:bg-blue-500 text-white font-extrabold text-lg py-4 rounded-xl shadow-md hover:bg-blue-700 dark:hover:bg-blue-600 active:scale-[0.98] transition-all cursor-pointer"
+                className="w-full mt-4 bg-primary-600 dark:bg-primary-500 text-white font-extrabold text-lg py-4 rounded-xl shadow-md hover:bg-primary-700 dark:hover:bg-primary-600 active:scale-[0.98] transition-all cursor-pointer"
               >
                 저장
               </button>

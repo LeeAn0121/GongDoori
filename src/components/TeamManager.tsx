@@ -231,7 +231,7 @@ export default function TeamManager({ session }: { session: Session }) {
     >
       <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-200 dark:border-slate-700/50 p-6 flex flex-col min-h-[400px]">
         <h2 className="text-2xl font-extrabold text-gray-900 dark:text-slate-50 mb-6 flex items-center gap-2">
-          <Users className="text-blue-600 dark:text-orange-400" /> 팀 관리
+          <Users className="text-primary-600 dark:text-orange-400" /> 팀 관리
         </h2>
         
         <AnimatePresence mode="wait">
@@ -249,7 +249,7 @@ export default function TeamManager({ session }: { session: Session }) {
               </p>
               
               <div className="w-full flex flex-col gap-3">
-                <button onClick={handleCreateTeam} className="w-full bg-blue-600 dark:bg-orange-500 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-200 dark:shadow-orange-900/50 hover:bg-blue-700 dark:bg-orange-600 active:scale-95 transition-all flex items-center justify-center gap-2">
+                <button onClick={handleCreateTeam} className="w-full bg-primary-600 dark:bg-orange-500 text-white font-bold py-4 rounded-2xl shadow-lg shadow-primary-200 dark:shadow-orange-900/50 hover:bg-primary-700 dark:bg-orange-600 active:scale-95 transition-all flex items-center justify-center gap-2">
                   <Plus size={20} /> 새 팀 만들기
                 </button>
                 <button onClick={handleJoinTeam} className="w-full bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 font-bold py-4 rounded-2xl border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:bg-slate-900 active:scale-95 transition-all flex items-center justify-center gap-2">
@@ -263,16 +263,16 @@ export default function TeamManager({ session }: { session: Session }) {
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="flex flex-col h-full"
             >
-              <div className="bg-gradient-to-br from-blue-600 dark:from-slate-800 to-blue-800 dark:to-slate-900 rounded-2xl p-6 text-white shadow-lg shadow-blue-200 dark:shadow-orange-900/50 mb-6 relative overflow-hidden">
+              <div className="bg-gradient-to-br from-primary-600 dark:from-slate-800 to-primary-800 dark:to-slate-900 rounded-2xl p-6 text-white shadow-lg shadow-primary-200 dark:shadow-orange-900/50 mb-6 relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-4 opacity-10">
                   <Users size={80} />
                 </div>
-                <h3 className="text-sm font-semibold text-blue-200 dark:text-orange-200 mb-1">나의 소속 팀</h3>
+                <h3 className="text-sm font-semibold text-primary-200 dark:text-orange-200 mb-1">나의 소속 팀</h3>
                 <h2 className="text-2xl font-extrabold mb-6 relative z-10">{team.name}</h2>
                 
                 <div className="bg-white dark:bg-slate-800/10 rounded-xl p-4 backdrop-blur-md flex justify-between items-center relative z-10 border border-white/20">
                   <div>
-                    <p className="text-xs text-blue-200 dark:text-orange-200 mb-1">팀 초대 코드</p>
+                    <p className="text-xs text-primary-200 dark:text-orange-200 mb-1">팀 초대 코드</p>
                     <p className="font-mono font-bold text-lg tracking-widest">{team.invite_code}</p>
                   </div>
                   <button onClick={copyInviteCode} className="p-3 bg-white dark:bg-slate-800/20 hover:bg-white dark:bg-slate-800/30 rounded-lg transition-colors active:scale-95">
@@ -290,7 +290,7 @@ export default function TeamManager({ session }: { session: Session }) {
                     return (
                       <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-900 rounded-2xl">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-blue-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center text-blue-600 dark:text-orange-400 font-bold">
+                          <div className="w-10 h-10 bg-primary-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center text-primary-600 dark:text-orange-400 font-bold">
                             {m.profiles?.display_name?.charAt(0) || '?'}
                           </div>
                           <div>

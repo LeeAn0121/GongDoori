@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { Dialog } from '@capacitor/dialog';
-import { ActionSheet } from '@capacitor/action-sheet';
 import type { Session } from '@supabase/supabase-js';
 import { ChevronRight, Sparkles, Hammer, Wallet, Palette, Monitor, HelpCircle, CalendarDays, DollarSign, Calculator, Bug, Users, KeyRound, LogOut, Trash2, X, QrCode } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -27,6 +26,8 @@ export default function Settings({ session }: { session: Session }) {
   const [defaultWage, setDefaultWage] = useState(localStorage.getItem('defaultWage') || '미설정');
   const [taxDeductionDefault, setTaxDeductionDefault] = useState(localStorage.getItem('taxDeductionDefault') === 'true');
   const [isColorModalOpen, setIsColorModalOpen] = useState(false);
+  const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
+  const [isJobModalOpen, setIsJobModalOpen] = useState(false);
   
   const [myTeams, setMyTeams] = useState<any[]>([]);
 
@@ -186,20 +187,11 @@ export default function Settings({ session }: { session: Session }) {
     }
   };
 
-  const handleChangeTheme = async () => {
-    const result = await ActionSheet.showActions({
-      title: '테마 선택',
-      options: [
-        { title: '시스템 설정 (기본)' },
-        { title: '라이트 모드' },
-        { title: '다크 모드' }
-      ]
-    });
-    
-    let newMode = 'system';
-    if (result.index === 1) newMode = 'light';
-    if (result.index === 2) newMode = 'dark';
-    
+  const handleChangeTheme = () => {
+    setIsThemeModalOpen(true);
+  };
+  
+  const handleSelectTheme = async (newMode: string) => {
     setThemeMode(newMode);
     localStorage.setItem('themePreference', newMode);
     
@@ -209,7 +201,10 @@ export default function Settings({ session }: { session: Session }) {
     } else {
       document.documentElement.classList.toggle('dark', newMode === 'dark');
     }
-    await Dialog.alert({ title: '안내', message: '테마가 변경되었습니다.' });
+    
+    setIsThemeModalOpen(false);
+    await Dialog.alert({ title: '안내', message: '테마가 즉시 적용됩니다.' });
+    window.location.reload();
   };
 
   const handleQRScanMock = async () => {
@@ -236,16 +231,15 @@ export default function Settings({ session }: { session: Session }) {
   };
 
   const handleUpdateJobType = async () => {
-    const result = await ActionSheet.showActions({
-      title: '직종 선택',
-      options: [{ title: '🏗️ 종합' }, { title: '🔨 철근' }, { title: '🪚 목수' }, { title: '⚡ 전기' }]
-    });
-    const jobs = ['🏗️ 종합', '🔨 철근', '🪚 목수', '⚡ 전기'];
-    if (result.index >= 0 && result.index < jobs.length) {
-      setJobType(jobs[result.index]);
-      localStorage.setItem('jobType', jobs[result.index]);
-      await Dialog.alert({ title: '안내', message: '내 직종이 변경되었습니다.' });
-    }
+    setIsJobModalOpen(true);
+  };
+  
+  const handleSelectJobType = async (job: string) => {
+    setJobType(job);
+    localStorage.setItem('jobType', job);
+    setIsJobModalOpen(false);
+    await Dialog.alert({ title: '안내', message: '내 직종이 변경되었습니다.' });
+    window.location.reload();
   };
 
   const handleUpdateAccount = async () => {
@@ -264,7 +258,8 @@ export default function Settings({ session }: { session: Session }) {
     setMainColor(colorHex);
     localStorage.setItem('mainColor', colorHex);
     setIsColorModalOpen(false);
-    await Dialog.alert({title:'안내', message:'색상이 변경되었습니다. (다음 업데이트에 앱 전반에 적용됩니다)'});
+    await Dialog.alert({title:'안내', message:'색상이 즉시 적용됩니다.'});
+    window.location.reload();
   };
 
   const handleRestartTutorial = async () => {
@@ -322,7 +317,7 @@ export default function Settings({ session }: { session: Session }) {
         {/* Profile Section */}
         <div className="bg-white dark:bg-slate-800 rounded-3xl p-5 mb-6 shadow-sm border border-gray-100 dark:border-slate-700/50 flex justify-between items-center cursor-pointer active:scale-95 transition-transform" onClick={handleEditProfile}>
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 font-extrabold text-xl">
+            <div className="w-14 h-14 bg-primary-100 dark:bg-primary-900/50 rounded-full flex items-center justify-center text-primary-600 dark:text-primary-400 font-extrabold text-xl">
               {displayName ? displayName.charAt(0) : '나'}
             </div>
             <div>
@@ -413,6 +408,42 @@ export default function Settings({ session }: { session: Session }) {
         </div>
       </div>
 
+      {/* 테마 모달 */}
+      <AnimatePresence>
+        {isThemeModalOpen && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/50 dark:bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setIsThemeModalOpen(false)}>
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white dark:bg-slate-800 w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-white/20 dark:border-slate-700" onClick={e => e.stopPropagation()}>
+              <h3 className="text-xl font-extrabold text-gray-900 dark:text-slate-50 tracking-tight mb-4">테마 선택</h3>
+              <div className="flex flex-col gap-2">
+                {[
+                  { label: '시스템 설정 (기본)', value: 'system' },
+                  { label: '라이트 모드', value: 'light' },
+                  { label: '다크 모드', value: 'dark' }
+                ].map(t => (
+                  <button key={t.value} onClick={() => handleSelectTheme(t.value)} className={`p-4 rounded-xl font-bold text-left ${themeMode === t.value ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600' : 'bg-gray-50 dark:bg-slate-900 text-gray-700 dark:text-gray-300'}`}>{t.label}</button>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 직종 모달 */}
+      <AnimatePresence>
+        {isJobModalOpen && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/50 dark:bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setIsJobModalOpen(false)}>
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white dark:bg-slate-800 w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-white/20 dark:border-slate-700" onClick={e => e.stopPropagation()}>
+              <h3 className="text-xl font-extrabold text-gray-900 dark:text-slate-50 tracking-tight mb-4">직종 선택</h3>
+              <div className="grid grid-cols-2 gap-2">
+                {['🏗️ 종합', '🔨 철근', '🪚 목수', '⚡ 전기'].map(j => (
+                  <button key={j} onClick={() => handleSelectJobType(j)} className={`p-4 rounded-xl font-bold ${jobType === j ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600' : 'bg-gray-50 dark:bg-slate-900 text-gray-700 dark:text-gray-300'}`}>{j}</button>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* 팀 만들기 모달 */}
       <AnimatePresence>
         {isCreateTeamOpen && (
@@ -449,14 +480,14 @@ export default function Settings({ session }: { session: Session }) {
                     value={newTeamName}
                     onChange={(e) => setNewTeamName(e.target.value)}
                     placeholder="팀 이름을 입력하세요"
-                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-lg text-gray-900 dark:text-white placeholder:text-gray-400 placeholder:font-medium"
+                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 font-bold text-lg text-gray-900 dark:text-white placeholder:text-gray-400 placeholder:font-medium"
                   />
                   <p className="text-xs font-semibold text-gray-500 mt-2 ml-1">무료 플랜은 팀장 포함 최대 3명까지</p>
                 </div>
 
                 <button 
                   onClick={handleCreateTeam}
-                  className="w-full mt-4 bg-blue-600 text-white font-extrabold text-lg py-4 rounded-xl shadow-md hover:bg-blue-700 active:scale-[0.98] transition-all cursor-pointer"
+                  className="w-full mt-4 bg-primary-600 text-white font-extrabold text-lg py-4 rounded-xl shadow-md hover:bg-primary-700 active:scale-[0.98] transition-all cursor-pointer"
                 >
                   만들기
                 </button>
@@ -503,7 +534,7 @@ export default function Settings({ session }: { session: Session }) {
                     value={inviteCode}
                     onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
                     placeholder="예: A1B2C3"
-                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-extrabold text-2xl text-center text-gray-900 dark:text-white placeholder:text-gray-300 placeholder:font-medium uppercase tracking-widest"
+                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 font-extrabold text-2xl text-center text-gray-900 dark:text-white placeholder:text-gray-300 placeholder:font-medium uppercase tracking-widest"
                   />
                 </div>
 
@@ -514,7 +545,7 @@ export default function Settings({ session }: { session: Session }) {
                     value={joinMessage}
                     onChange={(e) => setJoinMessage(e.target.value)}
                     placeholder="팀장에게 남길 메시지"
-                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-[15px]"
+                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 font-medium text-[15px]"
                   />
                 </div>
 
@@ -669,7 +700,7 @@ export default function Settings({ session }: { session: Session }) {
                 <div className="flex flex-col gap-2">
                   <button 
                     onClick={() => { Dialog.alert({ title: '안내', message: '링크가 복사되었습니다.' }) }}
-                    className="w-full bg-blue-600 text-white font-extrabold text-lg py-4 rounded-xl shadow-md hover:bg-blue-700 active:scale-[0.98] transition-all cursor-pointer"
+                    className="w-full bg-primary-600 text-white font-extrabold text-lg py-4 rounded-xl shadow-md hover:bg-primary-700 active:scale-[0.98] transition-all cursor-pointer"
                   >
                     링크 복사
                   </button>
@@ -720,7 +751,7 @@ export default function Settings({ session }: { session: Session }) {
                     <p className="text-gray-500 font-bold mb-4">현재 소속된 팀이 없습니다.</p>
                     <button 
                       onClick={() => { setIsTeamManageOpen(false); setIsCreateTeamOpen(true); }}
-                      className="px-6 py-2 bg-blue-600 text-white rounded-xl font-bold"
+                      className="px-6 py-2 bg-primary-600 text-white rounded-xl font-bold"
                     >
                       새 팀 만들기
                     </button>
@@ -742,9 +773,9 @@ export default function Settings({ session }: { session: Session }) {
                           <input 
                             type="text"
                             placeholder="새 팀 이름"
-                            className="flex-1 px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-sm text-gray-900 dark:text-white"
+                            className="flex-1 px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 font-bold text-sm text-gray-900 dark:text-white"
                           />
-                          <button onClick={() => handleUpdateTeamName(team.id, team.name)} className="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors text-sm whitespace-nowrap">
+                          <button onClick={() => handleUpdateTeamName(team.id, team.name)} className="px-4 py-2 bg-primary-600 text-white font-bold rounded-lg hover:bg-primary-700 transition-colors text-sm whitespace-nowrap">
                             변경
                           </button>
                         </div>

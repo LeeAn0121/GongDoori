@@ -57,8 +57,8 @@ export default function SiteManager({ records, settlements, setCurrentView }: { 
             <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 dark:border-slate-700/50 p-6 flex flex-col gap-5">
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2.5">
-                  <div className="p-2.5 bg-blue-50 dark:bg-orange-500/10 rounded-2xl">
-                    <Briefcase className="text-blue-600 dark:text-orange-400" size={24} />
+                  <div className="p-2.5 bg-primary-50 dark:bg-orange-500/10 rounded-2xl">
+                    <Briefcase className="text-primary-600 dark:text-orange-400" size={24} />
                   </div>
                   <h2 className="text-2xl font-extrabold text-gray-900 dark:text-slate-50 tracking-tight">내 작업현장</h2>
                 </div>
@@ -71,7 +71,7 @@ export default function SiteManager({ records, settlements, setCurrentView }: { 
                   placeholder="현장 이름으로 검색..." 
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3.5 bg-gray-50/50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-semibold"
+                  className="w-full pl-12 pr-4 py-3.5 bg-gray-50/50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-all text-sm font-semibold"
                 />
               </div>
             </div>
@@ -87,7 +87,7 @@ export default function SiteManager({ records, settlements, setCurrentView }: { 
                   <p className="text-sm font-medium text-gray-500 dark:text-slate-400 mb-8">캘린더에서 오늘의 출역을 먼저 등록해주세요.</p>
                   <button 
                     onClick={() => setCurrentView('calendar')}
-                    className="px-8 py-3.5 bg-blue-600 dark:bg-orange-500 text-white font-bold rounded-2xl shadow-lg shadow-blue-200/50 dark:shadow-orange-900/30 hover:bg-blue-700 dark:hover:bg-orange-600 active:scale-95 transition-all cursor-pointer"
+                    className="px-8 py-3.5 bg-primary-600 dark:bg-orange-500 text-white font-bold rounded-2xl shadow-lg shadow-primary-200/50 dark:shadow-orange-900/30 hover:bg-primary-700 dark:hover:bg-orange-600 active:scale-95 transition-all cursor-pointer"
                   >
                     기록 추가하러 가기
                   </button>
@@ -102,7 +102,7 @@ export default function SiteManager({ records, settlements, setCurrentView }: { 
                       transition={{ delay: idx * 0.05 }}
                       key={site.name} 
                       onClick={() => setSelectedSite(site.name)}
-                      className="flex flex-col p-5 bg-white dark:bg-slate-800 rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-gray-100/50 dark:border-slate-700/50 hover:border-blue-200 dark:hover:border-slate-600 transition-all active:scale-[0.98] cursor-pointer group"
+                      className="flex flex-col p-5 bg-white dark:bg-slate-800 rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-gray-100/50 dark:border-slate-700/50 hover:border-primary-200 dark:hover:border-slate-600 transition-all active:scale-[0.98] cursor-pointer group"
                     >
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-4">
@@ -112,11 +112,11 @@ export default function SiteManager({ records, settlements, setCurrentView }: { 
                           <div className="flex flex-col">
                             <h4 className="font-extrabold text-gray-900 dark:text-slate-100 text-lg mb-1 tracking-tight">{site.name}</h4>
                             <p className="text-xs font-semibold text-gray-500 dark:text-slate-400">
-                              총 <span className="text-blue-600 dark:text-orange-400 font-bold">{site.days}일</span> 출역 • 최근 {site.lastDate.substring(5)}
+                              총 <span className="text-primary-600 dark:text-orange-400 font-bold">{site.days}일</span> 출역 • 최근 {site.lastDate.substring(5)}
                             </p>
                           </div>
                         </div>
-                        <ChevronRight size={18} className="text-gray-300 dark:text-slate-600 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
+                        <ChevronRight size={18} className="text-gray-300 dark:text-slate-600 group-hover:text-primary-500 group-hover:translate-x-1 transition-all" />
                       </div>
                       
                       <div className="flex flex-col gap-2 bg-gray-50 dark:bg-slate-900/50 rounded-2xl p-4 border border-gray-100 dark:border-slate-700/50">
@@ -125,7 +125,7 @@ export default function SiteManager({ records, settlements, setCurrentView }: { 
                           <span className="font-extrabold text-gray-900 dark:text-slate-100">{Math.round(progress)}%</span>
                         </div>
                         <div className="h-2 w-full bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                          <div className="h-full bg-blue-500 dark:bg-orange-500 rounded-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
+                          <div className="h-full bg-primary-500 dark:bg-orange-500 rounded-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
                         </div>
                         <div className="flex justify-between mt-1 text-xs">
                           <div className="flex flex-col">
@@ -177,9 +177,9 @@ export default function SiteManager({ records, settlements, setCurrentView }: { 
                   <p className="text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">총 출역일</p>
                   <p className="text-xl font-extrabold text-gray-900 dark:text-slate-50">{selectedSiteData?.days}일</p>
                 </div>
-                <div className="flex-1 bg-blue-50/50 dark:bg-blue-900/10 p-4 rounded-2xl border border-blue-100/50 dark:border-blue-900/20">
-                  <p className="text-xs font-bold text-blue-600/80 dark:text-blue-400/80 mb-1">총 발생 금액</p>
-                  <p className="text-xl font-extrabold text-blue-600 dark:text-blue-400">{selectedSiteData?.totalAmount.toLocaleString()}원</p>
+                <div className="flex-1 bg-primary-50/50 dark:bg-primary-900/10 p-4 rounded-2xl border border-primary-100/50 dark:border-primary-900/20">
+                  <p className="text-xs font-bold text-primary-600/80 dark:text-primary-400/80 mb-1">총 발생 금액</p>
+                  <p className="text-xl font-extrabold text-primary-600 dark:text-primary-400">{selectedSiteData?.totalAmount.toLocaleString()}원</p>
                 </div>
                 <div className="flex-1 bg-red-50/50 dark:bg-red-900/10 p-4 rounded-2xl border border-red-100/50 dark:border-red-900/20">
                   <p className="text-xs font-bold text-red-500/80 dark:text-red-400/80 mb-1">총 미수금</p>

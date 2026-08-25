@@ -255,7 +255,7 @@ export default function SettlementManager({ records, settlements, setSettlements
       {/* 요약 카드 */}
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700/50 p-6 flex flex-col gap-5 no-print">
         <div className="flex items-center gap-2">
-          <Wallet className="text-blue-600 dark:text-orange-400" size={24} />
+          <Wallet className="text-primary-600 dark:text-orange-400" size={24} />
           <h2 className="text-xl font-extrabold text-gray-900 dark:text-slate-50">내 지갑 현황</h2>
         </div>
         
@@ -393,7 +393,7 @@ export default function SettlementManager({ records, settlements, setSettlements
             <h3 className="text-lg font-bold text-gray-900 dark:text-slate-50">수금 내역 관리</h3>
             <button 
               onClick={() => setIsAddSettlementOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg text-sm font-bold hover:bg-blue-100 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 rounded-lg text-sm font-bold hover:bg-primary-100 transition-colors"
             >
               <Plus size={16} strokeWidth={3} /> 받은 금액 기록
             </button>
@@ -421,7 +421,7 @@ export default function SettlementManager({ records, settlements, setSettlements
             {filter === 'all' && (
               <button 
                 onClick={() => setCurrentView('calendar')}
-                className="px-6 py-2.5 bg-blue-600 dark:bg-orange-500 text-white font-bold rounded-xl shadow-sm hover:bg-blue-700 dark:bg-orange-600 transition-all cursor-pointer"
+                className="px-6 py-2.5 bg-primary-600 dark:bg-orange-500 text-white font-bold rounded-xl shadow-sm hover:bg-primary-700 dark:bg-orange-600 transition-all cursor-pointer"
               >
                 기록 추가하러 가기
               </button>
@@ -446,7 +446,7 @@ export default function SettlementManager({ records, settlements, setSettlements
                   {record.status === '미수금' ? (
                     <button 
                       onClick={() => handleSettle(record)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-sm font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors cursor-pointer group"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-50 dark:bg-primary-900/20 rounded-lg text-sm font-bold text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900/40 transition-colors cursor-pointer group"
                     >
                       <CheckCircle size={16} /> 
                       <span className="group-hover:hidden">정산 완료</span>
@@ -503,7 +503,7 @@ export default function SettlementManager({ records, settlements, setSettlements
                       type="date"
                       value={settleDate}
                       onChange={(e) => setSettleDate(e.target.value)}
-                      className="px-4 py-3 bg-gray-100 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-xl text-sm font-bold flex-1 focus:ring-2 focus:ring-blue-500 outline-none"
+                      className="px-4 py-3 bg-gray-100 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-xl text-sm font-bold flex-1 focus:ring-2 focus:ring-primary-500 outline-none"
                     />
                   </div>
                 </div>
@@ -516,7 +516,7 @@ export default function SettlementManager({ records, settlements, setSettlements
                     value={settleSiteName}
                     onChange={(e) => setSettleSiteName(e.target.value)}
                     placeholder="예) 강남 아파트 현장"
-                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-[15px] text-gray-900 dark:text-white"
+                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 font-bold text-[15px] text-gray-900 dark:text-white"
                   />
                 </div>
 
@@ -528,7 +528,7 @@ export default function SettlementManager({ records, settlements, setSettlements
                     value={settleAmount}
                     onChange={(e) => setSettleAmount(e.target.value)}
                     placeholder="0"
-                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-lg text-blue-600 dark:text-blue-400 placeholder:text-gray-400 placeholder:font-medium"
+                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 font-bold text-lg text-primary-600 dark:text-primary-400 placeholder:text-gray-400 placeholder:font-medium"
                   />
                 </div>
 
@@ -539,13 +539,13 @@ export default function SettlementManager({ records, settlements, setSettlements
                     value={settleMemo}
                     onChange={(e) => setSettleMemo(e.target.value)}
                     placeholder="예) 세금공제, 식대 포함 등"
-                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-[15px]"
+                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 font-medium text-[15px]"
                   />
                 </div>
 
                 <button 
                   type="submit"
-                  className="w-full mt-4 bg-blue-600 dark:bg-blue-500 text-white font-extrabold text-lg py-4 rounded-xl shadow-md hover:bg-blue-700 dark:hover:bg-blue-600 active:scale-[0.98] transition-all cursor-pointer"
+                  className="w-full mt-4 bg-primary-600 dark:bg-primary-500 text-white font-extrabold text-lg py-4 rounded-xl shadow-md hover:bg-primary-700 dark:hover:bg-primary-600 active:scale-[0.98] transition-all cursor-pointer"
                 >
                   저장
                 </button>

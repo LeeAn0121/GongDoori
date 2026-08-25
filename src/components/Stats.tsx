@@ -195,7 +195,7 @@ export default function Stats({ records }: { records: any[] }) {
           <button
             key={filter.id}
             onClick={() => setDateFilter(filter.id as any)}
-            className={`shrink-0 snap-center px-4 py-2 rounded-xl text-sm font-extrabold transition-all duration-200 ${dateFilter === filter.id ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-md' : 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-600'}`}
+            className={`shrink-0 snap-center px-4 py-2 rounded-xl text-sm font-extrabold transition-all duration-200 ${dateFilter === filter.id ? 'bg-primary-600 dark:bg-primary-500 text-white shadow-md' : 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-600'}`}
           >
             {filter.label}
           </button>
@@ -203,13 +203,13 @@ export default function Stats({ records }: { records: any[] }) {
       </div>
 
       {/* Summary Card */}
-      <div className="bg-gradient-to-br from-blue-600 to-blue-800 dark:from-slate-800 dark:to-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(37,99,235,0.2)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] text-white relative overflow-hidden no-print">
+      <div className="bg-gradient-to-br from-primary-600 to-primary-800 dark:from-slate-800 dark:to-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(37,99,235,0.2)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] text-white relative overflow-hidden no-print">
         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
         <div className="relative z-10">
-          <p className="text-blue-100 dark:text-gray-400 font-semibold mb-1 text-sm">조회 기간 누적 수입</p>
+          <p className="text-primary-100 dark:text-gray-400 font-semibold mb-1 text-sm">조회 기간 누적 수입</p>
           <div className="flex items-end gap-2">
             <h2 className="text-4xl font-extrabold tracking-tight">{totalFiltered.toLocaleString()}</h2>
-            <span className="text-lg font-bold text-blue-200 dark:text-gray-500 mb-1">원</span>
+            <span className="text-lg font-bold text-primary-200 dark:text-gray-500 mb-1">원</span>
           </div>
         </div>
       </div>
@@ -231,7 +231,7 @@ export default function Stats({ records }: { records: any[] }) {
             }
             exportToPDF();
           }}
-          className="flex-1 bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 py-3.5 rounded-2xl font-extrabold text-sm shadow-sm hover:bg-blue-500/20 dark:hover:bg-blue-500/30 transition-all flex items-center justify-center gap-2 border border-blue-200 dark:border-blue-800 relative overflow-hidden group"
+          className="flex-1 bg-primary-500/10 dark:bg-primary-500/20 text-primary-600 dark:text-primary-400 py-3.5 rounded-2xl font-extrabold text-sm shadow-sm hover:bg-primary-500/20 dark:hover:bg-primary-500/30 transition-all flex items-center justify-center gap-2 border border-primary-200 dark:border-primary-800 relative overflow-hidden group"
         >
           {localStorage.getItem('isPremium') !== 'true' && <div className="absolute inset-0 bg-white/40 dark:bg-black/40 z-10 flex items-center justify-center backdrop-blur-[1px]"><span className="bg-black/70 text-white text-[10px] px-2 py-0.5 rounded-full">PRO</span></div>}
           <FileText size={18} /> 인건비 명세서 PDF
@@ -354,13 +354,13 @@ export default function Stats({ records }: { records: any[] }) {
           <div className="flex bg-gray-100 dark:bg-slate-700 p-1 rounded-lg">
             <button 
               onClick={() => setChartType('bar')} 
-              className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${chartType === 'bar' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-gray-500 dark:text-slate-400'}`}
+              className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${chartType === 'bar' ? 'bg-white dark:bg-slate-800 text-primary-600 dark:text-primary-400 shadow-sm' : 'text-gray-500 dark:text-slate-400'}`}
             >
               막대
             </button>
             <button 
               onClick={() => setChartType('pie')} 
-              className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${chartType === 'pie' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-gray-500 dark:text-slate-400'}`}
+              className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${chartType === 'pie' ? 'bg-white dark:bg-slate-800 text-primary-600 dark:text-primary-400 shadow-sm' : 'text-gray-500 dark:text-slate-400'}`}
             >
               원형
             </button>
@@ -451,7 +451,7 @@ export default function Stats({ records }: { records: any[] }) {
                   <select 
                     value={taxYear} 
                     onChange={(e) => setTaxYear(e.target.value)}
-                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-lg text-gray-900 dark:text-white appearance-none"
+                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 font-bold text-lg text-gray-900 dark:text-white appearance-none"
                   >
                     {[0,1,2].map(offset => {
                       const y = new Date().getFullYear() - offset;
@@ -505,7 +505,7 @@ export default function Stats({ records }: { records: any[] }) {
                         </div>
                       )}
                     </td>
-                    <td className="p-4 text-sm text-blue-600 dark:text-blue-400 font-extrabold text-right whitespace-nowrap">{record.amount.toLocaleString()}원</td>
+                    <td className="p-4 text-sm text-primary-600 dark:text-primary-400 font-extrabold text-right whitespace-nowrap">{record.amount.toLocaleString()}원</td>
                   </tr>
                 ))
               ) : (

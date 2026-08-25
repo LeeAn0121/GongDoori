@@ -92,10 +92,10 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-purple-100 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950 flex flex-col items-center justify-center p-4 transition-colors duration-500">
+    <div className="min-h-screen bg-gradient-to-br from-primary-100 via-white to-purple-100 dark:from-slate-950 dark:via-slate-900 dark:to-primary-950 flex flex-col items-center justify-center p-4 transition-colors duration-500">
       <div className="w-full max-w-3xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-2xl rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-white/50 dark:border-slate-700/50 p-8">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-24 h-24 rounded-[2rem] flex items-center justify-center shadow-xl shadow-blue-200/50 dark:shadow-orange-900/30 mb-5 overflow-hidden border-4 border-white dark:border-slate-800">
+          <div className="w-24 h-24 rounded-[2rem] flex items-center justify-center shadow-xl shadow-primary-200/50 dark:shadow-orange-900/30 mb-5 overflow-hidden border-4 border-white dark:border-slate-800">
             <img src={`${import.meta.env.BASE_URL}app_icon_v2.jpg`} alt="공돌이 앱 아이콘" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-3xl font-extrabold text-gray-900 dark:text-slate-50 tracking-tight">공돌이</h1>
@@ -113,7 +113,7 @@ export default function Auth() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="이메일을 입력하세요" 
-                className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:bg-slate-800 transition-all"
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white dark:bg-slate-800 transition-all"
               />
             </div>
           </div>
@@ -128,7 +128,7 @@ export default function Auth() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="비밀번호를 입력하세요" 
-                className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:bg-slate-800 transition-all"
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white dark:bg-slate-800 transition-all"
               />
             </div>
           </div>
@@ -136,7 +136,7 @@ export default function Auth() {
           <button 
             type="submit"
             disabled={loading}
-            className="w-full mt-4 bg-blue-600 dark:bg-orange-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-200 dark:shadow-orange-900/50 hover:bg-blue-700 dark:bg-orange-600 active:scale-[0.98] transition-all disabled:opacity-50 cursor-pointer"
+            className="w-full mt-4 bg-primary-600 dark:bg-orange-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary-200 dark:shadow-orange-900/50 hover:bg-primary-700 dark:bg-orange-600 active:scale-[0.98] transition-all disabled:opacity-50 cursor-pointer"
           >
             {loading ? '처리중...' : '이메일로 로그인'}
           </button>
