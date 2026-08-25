@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Calendar } from 'react-calendar'
-import { Plus, MapPin, DollarSign, AlignLeft, Trash2, Edit2, Calendar as CalendarIcon, MoreVertical, BarChart2, Settings as SettingsIcon, Sun, Moon, X } from 'lucide-react'
+import { Plus, MapPin, DollarSign, AlignLeft, Trash2, Edit2, Calendar as CalendarIcon, MoreVertical, BarChart2, Settings as SettingsIcon, Sun, Moon, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { format } from 'date-fns'
 import { supabase } from './supabaseClient'
 import type { Session } from '@supabase/supabase-js'
@@ -268,18 +268,56 @@ function MainApp({ session }: { session: Session }) {
               transition={{ duration: 0.2 }}
             >
               
-              {/* Dashboard Summary Card */}
-              <div className="bg-gradient-to-br from-blue-600 to-blue-800 dark:from-slate-800 dark:to-slate-900 rounded-3xl p-6 mb-4 shadow-[0_8px_30px_rgb(37,99,235,0.2)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] text-white relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
-                <div className="relative z-10 flex flex-col justify-center items-center py-4">
-                  <p className="text-blue-100 dark:text-gray-400 font-semibold mb-2 text-base">{format(activeStartDate || date, 'yyyy년 M월')} 총 수입</p>
-                  <div className="flex items-end gap-2">
-                    <h2 className="text-5xl font-extrabold tracking-tight">
-                      {records
-                        .filter(r => r.date.startsWith(format(activeStartDate || date, 'yyyy-MM')))
-                        .reduce((sum, r) => sum + r.amount, 0).toLocaleString()}
-                    </h2>
-                    <span className="text-xl font-bold text-blue-200 dark:text-gray-500 mb-1.5">원</span>
+              {/* Custom Calendar Header & Stats */}
+              <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-md rounded-3xl p-5 mb-4 shadow-sm border border-gray-100 dark:border-slate-700/50 flex flex-col gap-4">
+                <div className="flex justify-between items-center px-1">
+                  <button 
+                    onClick={() => {
+                      const current = activeStartDate || date;
+                      setActiveStartDate(new Date(current.getFullYear(), current.getMonth() - 1, 1));
+                    }} 
+                    className="p-2 rounded-xl bg-gray-50 hover:bg-gray-100 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-600 dark:text-gray-300 transition-colors"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  <h2 className="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+                    {format(activeStartDate || date, 'yyyy년 M월')}
+                  </h2>
+                  <button 
+                    onClick={() => {
+                      const current = activeStartDate || date;
+                      setActiveStartDate(new Date(current.getFullYear(), current.getMonth() + 1, 1));
+                    }} 
+                    className="p-2 rounded-xl bg-gray-50 hover:bg-gray-100 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-600 dark:text-gray-300 transition-colors"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-4 gap-2">
+                  <div className="flex flex-col items-center justify-center py-3 px-1 rounded-2xl bg-gray-50 dark:bg-slate-900/50 text-center">
+                    <span className="text-[15px] font-bold text-gray-900 dark:text-white">
+                      {new Set(records.filter(r => r.date.startsWith(format(activeStartDate || date, 'yyyy-MM')) && (r.amount > 0 || r.poomsu)).map(r => r.date)).size}<span className="text-[11px] font-semibold ml-0.5">일</span>
+                    </span>
+                    <span className="text-[10px] text-gray-500 font-semibold mt-1">작업일수</span>
+                  </div>
+                  <div className="flex flex-col items-center justify-center py-3 px-1 rounded-2xl bg-gray-50 dark:bg-slate-900/50 text-center">
+                    <span className="text-[15px] font-bold text-gray-900 dark:text-white">
+                      {records.filter(r => r.date.startsWith(format(activeStartDate || date, 'yyyy-MM'))).reduce((sum, r) => sum + (r.poomsu || 0), 0)}<span className="text-[11px] font-semibold ml-0.5">품</span>
+                    </span>
+                    <span className="text-[10px] text-gray-500 font-semibold mt-1">품</span>
+                  </div>
+                  <div className="flex flex-col items-center justify-center py-3 px-1 rounded-2xl bg-blue-50 dark:bg-blue-500/10 text-center">
+                    <span className="text-[15px] font-bold text-blue-600 dark:text-blue-400">
+                      {(records.filter(r => r.date.startsWith(format(activeStartDate || date, 'yyyy-MM'))).reduce((sum, r) => sum + r.amount, 0) / 10000).toLocaleString(undefined, {maximumFractionDigits: 1})}<span className="text-[11px] font-semibold ml-0.5">만원</span>
+                    </span>
+                    <span className="text-[10px] text-blue-500 font-semibold mt-1">총 일당</span>
+                  </div>
+                  <div className="flex flex-col items-center justify-center py-3 px-1 rounded-2xl bg-red-50 dark:bg-red-500/10 text-center">
+                    <span className="text-[15px] font-bold text-red-600 dark:text-red-400">
+                      {(records.filter(r => r.date.startsWith(format(activeStartDate || date, 'yyyy-MM')) && r.status === '미수금').reduce((sum, r) => sum + r.amount, 0) / 10000).toLocaleString(undefined, {maximumFractionDigits: 1})}<span className="text-[11px] font-semibold ml-0.5">만원</span>
+                    </span>
+                    <span className="text-[10px] text-red-500 font-semibold mt-1">미수금</span>
                   </div>
                 </div>
               </div>
@@ -312,6 +350,7 @@ function MainApp({ session }: { session: Session }) {
               .dark .react-calendar__tile--now, .dark .react-calendar__tile--active { background: rgba(59, 130, 246, 0.15) !important; color: #60a5fa !important; border: 2px solid rgba(59, 130, 246, 0.3) !important; box-shadow: none !important; }
             `}</style>
           <Calendar 
+            showNavigation={false}
             onChange={(val) => { setDate(val as any); setIsDailyDetailOpen(true); }} 
             value={date}
             activeStartDate={activeStartDate || undefined}
@@ -466,10 +505,10 @@ function MainApp({ session }: { session: Session }) {
       <nav className="fixed bottom-0 w-full max-w-md bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-gray-200/80 dark:border-slate-800 pb-[env(safe-area-inset-bottom)] z-40 shadow-[0_-8px_30px_rgba(0,0,0,0.04)]">
         <div className="flex justify-around items-center h-16 px-2">
           {[
-            { id: 'calendar', icon: CalendarIcon, label: '홈' },
-            { id: 'site', icon: MapPin, label: '작업현장' },
-            { id: 'settlement', icon: DollarSign, label: '내 지갑' },
-            { id: 'stats', icon: BarChart2, label: '리포트' },
+            { id: 'calendar', icon: CalendarIcon, label: '달력' },
+            { id: 'site', icon: MapPin, label: '현장' },
+            { id: 'settlement', icon: DollarSign, label: '정산' },
+            { id: 'stats', icon: BarChart2, label: '통계' },
             { id: 'settings', icon: SettingsIcon, label: '설정' },
           ].map((item) => {
             const isActive = currentView === item.id;
