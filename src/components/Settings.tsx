@@ -20,8 +20,11 @@ export default function Settings({ session }: { session: Session }) {
   const [joinMessage, setJoinMessage] = useState('');
   const [supportContent, setSupportContent] = useState('');
   
+  const [myTeams, setMyTeams] = useState<any[]>([]);
+
   useEffect(() => {
     fetchProfile();
+    fetchTeams();
   }, []);
 
   const fetchProfile = async () => {
@@ -29,6 +32,61 @@ export default function Settings({ session }: { session: Session }) {
     if (data) {
       setDisplayName(data.display_name || '');
     }
+  };
+
+  const fetchTeams = async () => {
+    const { data } = await supabase
+      .from('team_members')
+      .select('teams(id, name, invite_code)')
+      .eq('user_id', session.user.id);
+    
+    if (data) {
+      // @ts-ignore - Supabase nested select type inference issue
+      setMyTeams(data.map((d: any) => d.teams));
+    }
+  };
+
+  const handleCreateTeam = async () => {
+    if (!newTeamName) return;
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const { data: teamData, error: teamError } = await supabase.from('teams').insert([{ name: newTeamName, invite_code: code }]).select();
+    
+    if (teamError || !teamData) {
+      await Dialog.alert({title: '오류', message: '팀 생성 실패'});
+      return;
+    }
+    const teamId = teamData[0].id;
+    const { error: memberError } = await supabase.from('team_members').insert([{ team_id: teamId, user_id: session.user.id }]);
+    
+    if (memberError) {
+      await Dialog.alert({title: '오류', message: '팀 멤버 등록 실패'});
+      return;
+    }
+    await Dialog.alert({title: '성공', message: `팀이 생성되었습니다! 초대 코드: ${code}`});
+    fetchTeams();
+    setIsCreateTeamOpen(false);
+    setNewTeamName('');
+  };
+
+  const handleJoinTeam = async () => {
+    if (!inviteCode) return;
+    const { data: teamData } = await supabase.from('teams').select('id, name').eq('invite_code', inviteCode).single();
+    
+    if (!teamData) {
+      await Dialog.alert({title: '오류', message: '유효하지 않은 초대 코드입니다.'});
+      return;
+    }
+    
+    const { error } = await supabase.from('team_members').insert([{ team_id: teamData.id, user_id: session.user.id }]);
+    if (error) {
+      await Dialog.alert({title: '오류', message: '이미 가입된 팀이거나 가입에 실패했습니다.'});
+      return;
+    }
+    await Dialog.alert({title: '성공', message: `'${teamData.name}' 팀에 가입되었습니다!`});
+    fetchTeams();
+    setIsJoinTeamOpen(false);
+    setInviteCode('');
+    setJoinMessage('');
   };
 
   const handleLogout = async () => {
@@ -168,7 +226,7 @@ export default function Settings({ session }: { session: Session }) {
                 </div>
 
                 <button 
-                  onClick={() => { Dialog.alert({ title: '안내', message: '팀 만들기 기능은 백엔드 준비 중입니다.' }); setIsCreateTeamOpen(false); }}
+                  onClick={handleCreateTeam}
                   className="w-full mt-4 bg-blue-600 text-white font-extrabold text-lg py-4 rounded-xl shadow-md hover:bg-blue-700 active:scale-[0.98] transition-all cursor-pointer"
                 >
                   만들기
@@ -232,7 +290,7 @@ export default function Settings({ session }: { session: Session }) {
                 </div>
 
                 <button 
-                  onClick={() => { Dialog.alert({ title: '안내', message: '팀 가입 신청 기능은 백엔드 준비 중입니다.' }); setIsJoinTeamOpen(false); }}
+                  onClick={handleJoinTeam}
                   className="w-full mt-4 bg-gray-900 dark:bg-slate-700 text-white font-extrabold text-lg py-4 rounded-xl shadow-md hover:bg-black dark:hover:bg-slate-600 active:scale-[0.98] transition-all cursor-pointer"
                 >
                   가입 신청
@@ -436,58 +494,49 @@ export default function Settings({ session }: { session: Session }) {
               </div>
               
               <div className="flex flex-col gap-8">
-                {/* 팀 이름 수정 */}
-                <div>
-                  <h4 className="text-sm font-extrabold text-gray-500 mb-3">팀 이름 수정</h4>
-                  <div className="flex gap-2">
-                    <input 
-                      type="text"
-                      placeholder="새 팀 이름"
-                      className="flex-1 px-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-sm text-gray-900 dark:text-white"
-                    />
-                    <button className="px-4 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors text-sm whitespace-nowrap">
-                      변경하기
+                {myTeams.length === 0 ? (
+                  <div className="text-center py-10">
+                    <p className="text-gray-500 font-bold mb-4">현재 소속된 팀이 없습니다.</p>
+                    <button 
+                      onClick={() => { setIsTeamManageOpen(false); setIsCreateTeamOpen(true); }}
+                      className="px-6 py-2 bg-blue-600 text-white rounded-xl font-bold"
+                    >
+                      새 팀 만들기
                     </button>
                   </div>
-                </div>
+                ) : (
+                  myTeams.map(team => (
+                    <div key={team.id} className="border border-gray-200 dark:border-slate-700 rounded-2xl p-5 mb-4">
+                      <div className="flex justify-between items-center mb-4">
+                        <h4 className="text-lg font-extrabold text-gray-900 dark:text-white">{team.name}</h4>
+                        <div className="bg-gray-100 dark:bg-slate-700 px-3 py-1 rounded-lg text-sm font-mono text-gray-600 dark:text-gray-300">
+                          초대 코드: {team.invite_code}
+                        </div>
+                      </div>
+                      
+                      {/* 팀 이름 수정 */}
+                      <div className="mb-6">
+                        <h4 className="text-xs font-extrabold text-gray-500 mb-2">팀 이름 수정</h4>
+                        <div className="flex gap-2">
+                          <input 
+                            type="text"
+                            placeholder="새 팀 이름"
+                            className="flex-1 px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-sm text-gray-900 dark:text-white"
+                          />
+                          <button onClick={() => Dialog.alert({title:'안내', message:'이름 변경 기능은 준비 중입니다.'})} className="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors text-sm whitespace-nowrap">
+                            변경
+                          </button>
+                        </div>
+                      </div>
 
-                {/* 가입 신청 관리 */}
-                <div>
-                  <div className="flex justify-between items-center mb-3">
-                    <h4 className="text-sm font-extrabold text-gray-500">가입 신청 관리</h4>
-                    <span className="px-2 py-0.5 bg-red-100 text-red-600 rounded-full text-[10px] font-black">1건</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-700">
-                    <div>
-                      <p className="font-bold text-sm text-gray-900 dark:text-white">김목수</p>
-                      <p className="text-xs text-gray-500 mt-0.5">"잘 부탁드립니다!"</p>
-                    </div>
-                    <div className="flex gap-1.5">
-                      <button className="px-3 py-1.5 bg-blue-100 text-blue-600 font-bold rounded-lg text-xs">수락</button>
-                      <button className="px-3 py-1.5 bg-gray-200 text-gray-600 font-bold rounded-lg text-xs">거절</button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 팀원 목록 */}
-                <div>
-                  <h4 className="text-sm font-extrabold text-gray-500 mb-3">팀원 목록</h4>
-                  <div className="flex flex-col gap-2">
-                    <div className="flex justify-between items-center p-3 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold text-sm">나</div>
-                        <span className="font-bold text-sm text-gray-900 dark:text-white">전종욱 (팀장)</span>
+                      {/* 팀원 목록 (나머지 로직은 백엔드 완성 후) */}
+                      <div>
+                        <h4 className="text-xs font-extrabold text-gray-500 mb-2">기능 준비 중</h4>
+                        <p className="text-sm text-gray-400">팀원 추방, 권한 위임, 가입 수락 기능은 백엔드 작업 후 연동됩니다.</p>
                       </div>
                     </div>
-                    <div className="flex justify-between items-center p-3 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center font-bold text-sm">이</div>
-                        <span className="font-bold text-sm text-gray-900 dark:text-white">이반장 (팀원)</span>
-                      </div>
-                      <button className="text-xs font-bold text-red-500 px-2 py-1 bg-red-50 rounded-lg">추방</button>
-                    </div>
-                  </div>
-                </div>
+                  ))
+                )}
               </div>
             </motion.div>
           </motion.div>

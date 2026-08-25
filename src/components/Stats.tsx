@@ -130,6 +130,28 @@ export default function Stats({ records }: { records: any[] }) {
     window.print();
   };
 
+  const handleCalculateTax = async () => {
+    const yearRecords = records.filter(r => r.date.startsWith(taxYear));
+    const totalIncome = yearRecords.reduce((sum, r) => sum + r.amount, 0);
+    
+    // 단순 계산 (기본공제 150만, 단순경비율 미반영, 사업소득 기준)
+    const taxBase = Math.max(0, totalIncome - 1500000);
+    let tax = 0;
+    if (taxBase <= 14000000) tax = taxBase * 0.06;
+    else if (taxBase <= 50000000) tax = taxBase * 0.15 - 1260000;
+    else if (taxBase <= 88000000) tax = taxBase * 0.24 - 5760000;
+    else if (taxBase <= 150000000) tax = taxBase * 0.35 - 15440000;
+    else tax = taxBase * 0.38 - 19940000;
+    
+    const totalTax = tax * 1.1; // 지방소득세 10% 추가
+
+    await Dialog.alert({
+      title: `${taxYear}년 종합소득세 예상`,
+      message: `총 수입: ${totalIncome.toLocaleString()}원\n\n예상 납부세액(지방세 포함): 약 ${Math.floor(totalTax).toLocaleString()}원\n\n*단순 기본공제(150만)만 적용된 참고용 수치입니다.`
+    });
+    setIsTaxCalcOpen(false);
+  };
+
   return (
     <div className="flex flex-col gap-4 animate-in fade-in duration-200 w-full">
       <style>{`
@@ -394,7 +416,7 @@ export default function Stats({ records }: { records: any[] }) {
                 </div>
 
                 <button 
-                  onClick={() => { Dialog.alert({ title: '안내', message: '계산기 로직은 준비 중입니다.' }); setIsTaxCalcOpen(false); }}
+                  onClick={handleCalculateTax}
                   className="w-full mt-2 bg-indigo-600 dark:bg-indigo-500 text-white font-extrabold text-lg py-4 rounded-xl shadow-md hover:bg-indigo-700 active:scale-[0.98] transition-all cursor-pointer"
                 >
                   계산하기
