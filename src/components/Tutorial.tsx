@@ -87,84 +87,83 @@ export default function Tutorial({ onComplete, onPageChange }: { onComplete: () 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm flex flex-col pointer-events-auto"
+      className="fixed inset-0 z-[100] bg-transparent flex flex-col justify-end pointer-events-none pb-20 sm:pb-6 px-4"
     >
-      {/* Skip */}
-      <div className="flex justify-end p-4 pt-[calc(env(safe-area-inset-top)+1rem)]">
-        <button
-          onClick={onComplete}
-          className="px-4 py-2 text-sm font-bold text-gray-500 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200 transition-colors flex items-center gap-1 bg-white/50 dark:bg-slate-800/50 rounded-full backdrop-blur-md"
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={page}
+          initial={{ opacity: 0, y: 50, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 20, scale: 0.95 }}
+          transition={{ duration: 0.3 }}
+          className="w-full max-w-md mx-auto bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl p-6 rounded-[2rem] shadow-2xl border border-white/50 dark:border-slate-700/50 mb-[env(safe-area-inset-bottom)] pointer-events-auto flex flex-col gap-4 relative"
         >
-          건너뛰기 <X size={16} />
-        </button>
-      </div>
-
-      {/* Content */}
-      <div className="flex-1 flex flex-col items-center justify-center px-8 mt-[-10vh]">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={page}
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 1.05, y: -20 }}
-            transition={{ duration: 0.3 }}
-            className="flex flex-col items-center text-center w-full max-w-md bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl p-8 rounded-[2.5rem] shadow-2xl border border-white/50 dark:border-slate-700/50"
+          {/* Skip Button (Top Right) */}
+          <button
+            onClick={onComplete}
+            className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 bg-gray-100/50 dark:bg-slate-700/50 rounded-full transition-colors"
           >
-            <div className={`w-20 h-20 rounded-[1.5rem] bg-gradient-to-br ${slide.color} flex items-center justify-center mb-6 shadow-lg`}>
-              <Icon size={36} className="text-white" />
+            <X size={18} />
+          </button>
+
+          {/* Header */}
+          <div className="flex items-center gap-4">
+            <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${slide.color} flex items-center justify-center shadow-md shrink-0`}>
+              <Icon size={26} className="text-white" />
             </div>
-            <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white mb-3">
-              {slide.title}
-            </h2>
-            <p className="text-base font-semibold text-gray-500 dark:text-slate-400 mb-6">
-              {slide.desc}
-            </p>
-            <div className={`w-full ${slide.bg} rounded-2xl p-5 text-left`}>
-              {slide.details.map((d, i) => (
-                <div key={i} className="flex items-start gap-3 mb-3 last:mb-0">
-                  <span className="w-6 h-6 rounded-full bg-white dark:bg-slate-700 text-xs font-extrabold flex items-center justify-center shadow-sm text-gray-700 dark:text-slate-200 shrink-0 mt-0.5">
-                    {i + 1}
-                  </span>
-                  <span className="text-sm font-semibold text-gray-700 dark:text-slate-300 leading-relaxed">{d}</span>
-                </div>
+            <div>
+              <h2 className="text-xl font-extrabold text-gray-900 dark:text-white mb-1">
+                {slide.title}
+              </h2>
+              <p className="text-sm font-semibold text-gray-500 dark:text-slate-400">
+                {slide.desc}
+              </p>
+            </div>
+          </div>
+
+          {/* Details */}
+          <div className={`w-full ${slide.bg} rounded-xl p-3 text-left`}>
+            {slide.details.map((d, i) => (
+              <div key={i} className="flex items-start gap-2 mb-2 last:mb-0">
+                <span className="w-5 h-5 rounded-full bg-white dark:bg-slate-700 text-[10px] font-extrabold flex items-center justify-center shadow-sm text-gray-700 dark:text-slate-200 shrink-0 mt-0.5">
+                  {i + 1}
+                </span>
+                <span className="text-xs font-semibold text-gray-700 dark:text-slate-300 leading-snug">{d}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Controls */}
+          <div className="flex items-center justify-between mt-2">
+            {/* Dots */}
+            <div className="flex gap-1.5">
+              {slides.map((_, i) => (
+                <div
+                  key={i}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    i === page ? 'w-5 bg-primary-500' : 'w-1.5 bg-gray-300 dark:bg-slate-600'
+                  }`}
+                />
               ))}
             </div>
-          </motion.div>
-        </AnimatePresence>
-      </div>
 
-      {/* Bottom Controls */}
-      <div className="px-8 pb-[calc(env(safe-area-inset-bottom)+2rem)] bg-gradient-to-t from-white/90 dark:from-slate-900/90 to-transparent pt-10">
-        {/* Dots */}
-        <div className="flex justify-center gap-2 mb-6">
-          {slides.map((_, i) => (
-            <div
-              key={i}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                i === page ? 'w-8 bg-primary-500' : 'w-2 bg-gray-300 dark:bg-slate-600'
+            {/* Button */}
+            <button
+              onClick={() => {
+                if (isLast) onComplete();
+                else setPage(page + 1);
+              }}
+              className={`px-5 py-2.5 rounded-xl font-extrabold text-sm shadow-md transition-all active:scale-[0.96] flex items-center gap-1 ${
+                isLast
+                  ? 'bg-primary-600 text-white hover:bg-primary-700'
+                  : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100'
               }`}
-            />
-          ))}
-        </div>
-
-        {/* Button */}
-        <button
-          onClick={() => {
-            if (isLast) {
-              onComplete();
-            } else {
-              setPage(page + 1);
-            }
-          }}
-          className={`w-full py-4 rounded-2xl font-extrabold text-lg shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 ${
-            isLast
-              ? 'bg-primary-600 text-white hover:bg-primary-700'
-              : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100'
-          }`}
-        >
-          {isLast ? '시작하기 🚀' : <>다음 <ChevronRight size={20} /></>}
-        </button>
-      </div>
+            >
+              {isLast ? '시작하기 🚀' : <>다음 <ChevronRight size={16} /></>}
+            </button>
+          </div>
+        </motion.div>
+      </AnimatePresence>
     </motion.div>
   );
 }

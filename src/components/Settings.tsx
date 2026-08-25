@@ -22,7 +22,7 @@ const QRScanner = ({ onScan }: { onScan: (text: string) => void }) => {
         scanner.clear();
         onScan(decodedText);
       },
-      (error) => {
+      () => {
         // ignore errors for each frame
       }
     );
