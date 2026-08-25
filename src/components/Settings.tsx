@@ -215,7 +215,7 @@ export default function Settings({ session }: { session: Session }) {
         <div className="bg-white dark:bg-slate-800 rounded-3xl overflow-hidden mb-6 shadow-sm border border-gray-100 dark:border-slate-700/50">
           <ListItem icon={Hammer} title="내 직종" value="🏗️ 종합" onClick={() => {}} />
           <ListItem icon={Wallet} title="계좌번호" subtitle="정산 요청 시 자동으로 같이 보내드려요" value="미설정" onClick={() => {}} />
-          <ListItem icon={Monitor} title="테마" value="시스템" onClick={() => {}} />
+          <ListItem icon={Monitor} title="테마" value="시스템" onClick={() => Dialog.alert({title:'테마', message:'시스템 / 라이트 / 다크 선택 기능 준비 중'})} />
           <ListItem icon={Palette} title="메인 색상" onClick={() => {}} />
           <ListItem icon={CalendarDays} title="캘린더 구독" subtitle="다른 캘린더 앱(구글, 애플 등)과 연동해요" onClick={() => setIsCalSubOpen(true)} />
           <ListItem icon={HelpCircle} title="앱 사용법 다시 보기" subtitle="달력·정산·통계 등 각 탭 설명을 처음부터 다시 봐요" onClick={() => {}} />
@@ -241,6 +241,7 @@ export default function Settings({ session }: { session: Session }) {
           <ListItem icon={Users} title="팀 관리" subtitle="현재 소속된 팀을 관리해요" onClick={() => setIsTeamManageOpen(true)} />
           <ListItem icon={Users} title="팀 만들기" subtitle="팀원들과 현장을 함께 관리해요" onClick={() => setIsCreateTeamOpen(true)} />
           <ListItem icon={KeyRound} title="코드로 참여하기" subtitle="초대 코드를 입력해 팀 가입을 신청해요" onClick={() => setIsJoinTeamOpen(true)} />
+          <ListItem icon={Monitor} title="QR코드 스캔" subtitle="QR코드를 스캔하여 팀에 가입해요" onClick={() => Dialog.alert({title:'안내', message:'카메라 권한 및 QR코드 스캔 기능 준비 중입니다.'})} />
         </div>
 
         {/* Account Actions */}
