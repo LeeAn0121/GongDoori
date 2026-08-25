@@ -236,17 +236,21 @@ function MainApp({ session }: { session: Session }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-gray-50 to-purple-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex flex-col items-center pb-20 transition-colors duration-500">
-      <header className="w-full max-w-md p-5 pt-[calc(env(safe-area-inset-top)+1.5rem)] flex justify-between items-center sticky top-0 bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl z-40 border-b border-gray-200/50 dark:border-slate-800/50">
-        <h1 className="text-2xl font-extrabold text-gray-900 dark:text-slate-50 tracking-tight flex items-center gap-2">
-          <img src={`${import.meta.env.BASE_URL}app_icon_v2.jpg`} alt="공돌이" className="w-8 h-8 rounded-xl shadow-md border border-gray-100 dark:border-slate-800" />
-          공돌이
-        </h1>
+      <header className="w-full max-w-md px-5 pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-4 flex justify-between items-center z-40 relative">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-[0.85rem] overflow-hidden shadow-sm shadow-blue-900/5 dark:shadow-black/50 border-[1.5px] border-white dark:border-slate-700/50">
+            <img src={`${import.meta.env.BASE_URL}app_icon_v2.jpg`} alt="공돌이" className="w-full h-full object-cover" />
+          </div>
+          <h1 className="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+            공돌이
+          </h1>
+        </div>
         <button 
           onClick={toggleDarkMode}
-          className="p-2.5 bg-white/80 dark:bg-slate-800/80 rounded-full shadow-sm border border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors active:scale-95 cursor-pointer text-gray-600 dark:text-yellow-400 backdrop-blur-md"
+          className="w-10 h-10 flex items-center justify-center bg-white/60 dark:bg-slate-800/60 backdrop-blur-md rounded-[0.85rem] shadow-sm border border-white/60 dark:border-slate-700/50 hover:bg-white/90 dark:hover:bg-slate-700/90 transition-all active:scale-90 text-gray-500 dark:text-yellow-400 cursor-pointer"
           aria-label="다크 모드 전환"
         >
-          {isDarkMode ? <Moon size={20} /> : <Sun size={20} />}
+          {isDarkMode ? <Moon size={18} strokeWidth={2.5} /> : <Sun size={18} strokeWidth={2.5} />}
         </button>
       </header>
       
