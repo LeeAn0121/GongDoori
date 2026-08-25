@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts';
 import { subWeeks, subMonths, isAfter, parseISO, format } from 'date-fns';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 import { FileText, Table } from 'lucide-react';
 
 export default function Stats({ records }: { records: any[] }) {
@@ -21,6 +22,10 @@ export default function Stats({ records }: { records: any[] }) {
     return records.filter(r => isAfter(parseISO(r.date), startDate!));
   }, [records, dateFilter]);
 
+  const sortedRecords = useMemo(() => {
+    return [...filteredRecords].sort((a,b) => a.date.localeCompare(b.date));
+  }, [filteredRecords]);
+
   const chartData = useMemo(() => {
     const dataBySite: Record<string, { total: number, color: string }> = {};
     filteredRecords.forEach(r => {
@@ -32,26 +37,110 @@ export default function Stats({ records }: { records: any[] }) {
     });
     return Object.entries(dataBySite)
       .map(([name, data]) => ({ name, total: data.total, color: data.color }))
-      .sort((a, b) => b.total - a.total); // Sort by highest amount
+      .sort((a, b) => b.total - a.total);
   }, [filteredRecords]);
 
   const totalFiltered = chartData.reduce((sum, item) => sum + item.total, 0);
 
-  const exportToExcel = () => {
-    const dataForExcel = filteredRecords.map(r => ({
-      '작업일자': r.date,
-      '현장명': r.siteName,
-      '수입(원)': r.amount,
-      '상세작업': r.taskContent || '',
-      '메모': r.memo || ''
-    }));
-    
-    const ws = XLSX.utils.json_to_sheet(dataForExcel);
-    ws['!cols'] = [{ wch: 12 }, { wch: 20 }, { wch: 15 }, { wch: 20 }, { wch: 30 }];
-    
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "작업내역");
-    XLSX.writeFile(wb, `공돌이_내역정리_${format(new Date(), 'yyyyMMdd')}.xlsx`);
+  const getFilterLabel = () => {
+    if (dateFilter === 'all') return '전체 기간';
+    if (dateFilter === '2w') return '최근 2주';
+    if (dateFilter === '1m') return '최근 1개월';
+    if (dateFilter === '3m') return '최근 3개월';
+    if (dateFilter === '6m') return '최근 6개월';
+    return '';
+  }
+
+  const exportToExcel = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('작업 내역서', {
+      pageSetup: { paperSize: 9, orientation: 'portrait' }
+    });
+
+    // Columns config
+    sheet.columns = [
+      { width: 15 }, // 일자
+      { width: 25 }, // 현장명
+      { width: 45 }, // 상세 작업 및 메모
+      { width: 20 }, // 금액
+    ];
+
+    // Titles
+    sheet.mergeCells('A1:D1');
+    const titleCell = sheet.getCell('A1');
+    titleCell.value = '작업 및 청구 내역서';
+    titleCell.font = { name: 'Malgun Gothic', size: 20, bold: true };
+    titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+    sheet.getRow(1).height = 40;
+
+    sheet.mergeCells('A2:D2');
+    const infoCell = sheet.getCell('A2');
+    infoCell.value = `조회 기간: ${getFilterLabel()}   |   출력 일자: ${format(new Date(), 'yyyy.MM.dd')}`;
+    infoCell.font = { name: 'Malgun Gothic', size: 11, color: { argb: 'FF666666' } };
+    infoCell.alignment = { horizontal: 'right', vertical: 'middle' };
+
+    sheet.addRow([]); // Empty row
+
+    // Table Header
+    const headerRow = sheet.addRow(['작업 일자', '현 장 명', '작업 내용 및 특이사항', '청구 금액']);
+    headerRow.height = 25;
+    headerRow.eachCell((cell) => {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF3F4F6' } };
+      cell.font = { name: 'Malgun Gothic', bold: true, size: 12 };
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      cell.border = {
+        top: { style: 'thin' }, bottom: { style: 'thin' },
+        left: { style: 'thin' }, right: { style: 'thin' }
+      };
+    });
+
+    // Data Rows
+    sortedRecords.forEach(record => {
+      const details = [record.taskContent, record.memo].filter(Boolean).join(' / ');
+      const row = sheet.addRow([
+        record.date,
+        record.siteName,
+        details,
+        record.amount
+      ]);
+      
+      row.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' };
+      row.getCell(2).alignment = { horizontal: 'center', vertical: 'middle' };
+      row.getCell(3).alignment = { horizontal: 'left', vertical: 'middle' };
+      row.getCell(4).alignment = { horizontal: 'right', vertical: 'middle' };
+      row.getCell(4).numFmt = '#,##0"원"';
+
+      row.eachCell((cell) => {
+        cell.font = { name: 'Malgun Gothic', size: 11 };
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FFEEEEEE' } }, 
+          bottom: { style: 'thin', color: { argb: 'FFEEEEEE' } },
+          left: { style: 'thin', color: { argb: 'FFEEEEEE' } }, 
+          right: { style: 'thin', color: { argb: 'FFEEEEEE' } }
+        };
+      });
+    });
+
+    // Total Row
+    const totalRow = sheet.addRow(['', '', '총 청구(합계) 금액 :', totalFiltered]);
+    totalRow.height = 30;
+    totalRow.getCell(3).font = { name: 'Malgun Gothic', bold: true, size: 12 };
+    totalRow.getCell(3).alignment = { horizontal: 'right', vertical: 'middle' };
+    totalRow.getCell(4).font = { name: 'Malgun Gothic', bold: true, size: 14, color: { argb: 'FF2563EB' } };
+    totalRow.getCell(4).alignment = { horizontal: 'right', vertical: 'middle' };
+    totalRow.getCell(4).numFmt = '#,##0"원"';
+    totalRow.eachCell((cell, colNum) => {
+      if (colNum >= 3) {
+        cell.border = {
+          top: { style: 'double', color: { argb: 'FF000000' } },
+          bottom: { style: 'thick', color: { argb: 'FF000000' } }
+        };
+      }
+    });
+
+    // Generate Excel file
+    const buffer = await workbook.xlsx.writeBuffer();
+    saveAs(new Blob([buffer]), `작업내역서_${format(new Date(), 'yyyyMMdd')}.xlsx`);
   };
 
   const exportToPDF = () => {
@@ -61,10 +150,11 @@ export default function Stats({ records }: { records: any[] }) {
   return (
     <div className="flex flex-col gap-4 animate-in fade-in duration-200 w-full">
       <style>{`
+        @page { size: A4 portrait; margin: 15mm; }
         @media print {
           body * { visibility: hidden; }
-          .print-container, .print-container * { visibility: visible; }
-          .print-container { position: absolute; left: 0; top: 0; width: 100%; }
+          .print-only, .print-only * { visibility: visible; }
+          .print-only { position: absolute; left: 0; top: 0; width: 100%; display: block !important; }
           .no-print { display: none !important; }
         }
       `}</style>
@@ -89,7 +179,7 @@ export default function Stats({ records }: { records: any[] }) {
       </div>
 
       {/* Summary Card */}
-      <div className="bg-gradient-to-br from-blue-600 to-blue-800 dark:from-slate-800 dark:to-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(37,99,235,0.2)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] text-white relative overflow-hidden print-container">
+      <div className="bg-gradient-to-br from-blue-600 to-blue-800 dark:from-slate-800 dark:to-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(37,99,235,0.2)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] text-white relative overflow-hidden no-print">
         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
         <div className="relative z-10">
           <p className="text-blue-100 dark:text-gray-400 font-semibold mb-1 text-sm">조회 기간 누적 수입</p>
@@ -112,8 +202,75 @@ export default function Stats({ records }: { records: any[] }) {
           onClick={exportToPDF}
           className="flex-1 bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 py-3 rounded-2xl font-extrabold text-sm shadow-sm hover:bg-red-500/20 dark:hover:bg-red-500/30 transition-all flex items-center justify-center gap-2 border border-red-200 dark:border-red-800"
         >
-          <FileText size={18} /> PDF 인쇄
+          <FileText size={18} /> PDF/청구서 인쇄
         </button>
+      </div>
+
+      {/* Professional PDF Print Layout (Hidden on Screen, Visible on Print) */}
+      <div className="print-only hidden bg-white text-black p-8 max-w-[210mm] mx-auto min-h-[297mm]">
+        <div className="text-center mb-8 border-b-2 border-black pb-4">
+          <h1 className="text-4xl font-black tracking-widest text-gray-900 mb-4">작 업 내 역 서</h1>
+          <div className="flex justify-between items-end text-sm text-gray-700 font-bold">
+            <div>
+              <p>조회 기간: {getFilterLabel()}</p>
+            </div>
+            <div>
+              <p>출력 일자: {format(new Date(), 'yyyy년 MM월 dd일')}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mb-6 flex justify-between items-end">
+          <h2 className="text-xl font-bold">상세 작업 및 청구 내역</h2>
+          <div className="text-2xl font-black text-gray-900">
+            총 청구액 : {totalFiltered.toLocaleString()} 원
+          </div>
+        </div>
+
+        <table className="w-full border-collapse border-2 border-gray-900 text-sm">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="border border-gray-900 p-3 w-[15%]">일자</th>
+              <th className="border border-gray-900 p-3 w-[25%]">현장명</th>
+              <th className="border border-gray-900 p-3 w-[45%]">상세 작업 및 특이사항</th>
+              <th className="border border-gray-900 p-3 w-[15%] text-right">청구 금액</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sortedRecords.length > 0 ? (
+              sortedRecords.map(record => (
+                <tr key={record.id}>
+                  <td className="border border-gray-400 p-3 text-center">{format(parseISO(record.date), 'MM/dd')}</td>
+                  <td className="border border-gray-400 p-3 text-center font-bold">{record.siteName}</td>
+                  <td className="border border-gray-400 p-3">
+                    {record.taskContent} {record.memo ? `(${record.memo})` : ''}
+                  </td>
+                  <td className="border border-gray-400 p-3 text-right font-bold">{record.amount.toLocaleString()}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={4} className="border border-gray-400 p-8 text-center text-gray-500">
+                  해당 기간 내역이 없습니다.
+                </td>
+              </tr>
+            )}
+            <tr className="bg-gray-50 font-black">
+              <td colSpan={3} className="border-2 border-gray-900 p-4 text-right text-lg">총 합계 :</td>
+              <td className="border-2 border-gray-900 p-4 text-right text-lg">{totalFiltered.toLocaleString()} 원</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div className="mt-20 text-center">
+          <p className="text-lg font-bold mb-8">위와 같이 작업 내역 및 청구 금액을 확인합니다.</p>
+          <div className="flex justify-end pr-10">
+            <p className="text-lg font-bold flex items-end gap-2">
+              <span>서명(인):</span>
+              <span className="w-32 border-b border-gray-900 inline-block"></span>
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Chart Card */}
@@ -187,8 +344,8 @@ export default function Stats({ records }: { records: any[] }) {
         </div>
       </div>
       
-      {/* Data Table */}
-      <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] dark:shadow-[0_4px_20px_rgb(0,0,0,0.2)] border border-white/50 dark:border-slate-700/50 overflow-hidden print-container mt-2">
+      {/* Mobile Screen Data Table */}
+      <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] dark:shadow-[0_4px_20px_rgb(0,0,0,0.2)] border border-white/50 dark:border-slate-700/50 overflow-hidden no-print mt-2">
         <div className="p-5 border-b border-gray-100 dark:border-slate-700">
           <h3 className="text-lg font-bold text-gray-900 dark:text-slate-50">상세 내역</h3>
         </div>
@@ -202,8 +359,8 @@ export default function Stats({ records }: { records: any[] }) {
               </tr>
             </thead>
             <tbody>
-              {filteredRecords.length > 0 ? (
-                filteredRecords.sort((a,b) => b.date.localeCompare(a.date)).map(record => (
+              {sortedRecords.length > 0 ? (
+                sortedRecords.map(record => (
                   <tr key={record.id} className="border-b border-gray-50 dark:border-slate-700/50 hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors">
                     <td className="p-4 text-sm text-gray-600 dark:text-slate-400 font-medium whitespace-nowrap">{format(parseISO(record.date), 'M.d')}</td>
                     <td className="p-4 text-sm text-gray-900 dark:text-slate-300 font-bold whitespace-nowrap">
