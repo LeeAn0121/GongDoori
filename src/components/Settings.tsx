@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient';
 import { Dialog } from '@capacitor/dialog';
 import type { Session } from '@supabase/supabase-js';
@@ -11,16 +11,24 @@ import { downloadAndShareBase64 } from '../utils/download';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 
 const QRScanner = ({ onScan }: { onScan: (text: string) => void }) => {
+  const onScanRef = useRef(onScan);
+  useEffect(() => {
+    onScanRef.current = onScan;
+  }, [onScan]);
+
   useEffect(() => {
     const scanner = new Html5QrcodeScanner(
       "qr-reader", 
       { fps: 10, qrbox: { width: 250, height: 250 } }, 
       false
     );
+    
     scanner.render(
       (decodedText) => {
         scanner.clear();
-        onScan(decodedText);
+        if (onScanRef.current) {
+          onScanRef.current(decodedText);
+        }
       },
       () => {
         // ignore errors for each frame
@@ -28,9 +36,13 @@ const QRScanner = ({ onScan }: { onScan: (text: string) => void }) => {
     );
 
     return () => {
-      scanner.clear().catch(console.error);
+      try {
+        scanner.clear().catch(() => {});
+      } catch (e) {
+        // ignore
+      }
     };
-  }, [onScan]);
+  }, []);
 
   return <div id="qr-reader" className="w-full max-w-sm bg-white rounded-2xl overflow-hidden shadow-lg border-none [&_div]:border-none [&_video]:rounded-xl"></div>;
 };
