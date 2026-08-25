@@ -238,61 +238,96 @@ export default function Stats({ records }: { records: any[] }) {
         <Calculator size={18} /> 종합소득세 예상 계산기
       </button>
 
-      {/* Basic History Print Layout (Hidden on Screen, Visible on Print) */}
-      <div className="print-only hidden bg-white text-black p-8 max-w-[210mm] mx-auto min-h-[297mm]">
-        <div className="text-center mb-8 border-b-2 border-black pb-4">
-          <h1 className="text-3xl font-black text-gray-900 mb-4">작 업 내 역 이 력</h1>
-          <div className="flex justify-between items-end text-sm text-gray-700 font-bold">
-            <div>
-              <p>조회 기간: {getFilterLabel()}</p>
+      {/* Premium Invoice Print Layout (Hidden on Screen, Visible on Print) */}
+      <div className="print-only hidden bg-white text-black p-10 max-w-[210mm] mx-auto min-h-[297mm]">
+        {/* Header */}
+        <div className="text-center mb-10 pb-6 border-b-4 border-gray-900">
+          <h1 className="text-4xl font-black text-gray-900 mb-2 tracking-widest">노 무 비 청 구 명 세 서</h1>
+          <p className="text-gray-500 font-bold text-sm">Invoice for Labor Cost</p>
+        </div>
+
+        {/* Info Grid */}
+        <div className="flex justify-between items-start mb-8 text-sm">
+          <div className="w-1/2 pr-4 border-r border-gray-300">
+            <h2 className="font-extrabold text-lg mb-3">청구 내역 요약</h2>
+            <div className="grid grid-cols-3 gap-2 mb-2 font-bold text-gray-700">
+              <span className="text-gray-500">청구 기간</span>
+              <span className="col-span-2">{getFilterLabel()}</span>
             </div>
-            <div>
-              <p>출력 일자: {format(new Date(), 'yyyy년 MM월 dd일')}</p>
+            <div className="grid grid-cols-3 gap-2 mb-2 font-bold text-gray-700">
+              <span className="text-gray-500">출력 일자</span>
+              <span className="col-span-2">{format(new Date(), 'yyyy년 MM월 dd일')}</span>
+            </div>
+            <div className="grid grid-cols-3 gap-2 font-bold text-gray-700">
+              <span className="text-gray-500">총 청구액</span>
+              <span className="col-span-2 text-lg text-black font-black">{totalFiltered.toLocaleString()} 원</span>
+            </div>
+          </div>
+          
+          <div className="w-1/2 pl-6">
+            <h2 className="font-extrabold text-lg mb-3">수신 / 송금 정보</h2>
+            <div className="grid grid-cols-3 gap-2 mb-2 font-bold text-gray-700">
+              <span className="text-gray-500">직 종</span>
+              <span className="col-span-2">{localStorage.getItem('jobType') || '건설 일용직'}</span>
+            </div>
+            <div className="grid grid-cols-3 gap-2 mb-2 font-bold text-gray-700">
+              <span className="text-gray-500">계 좌 번 호</span>
+              <span className="col-span-2">{localStorage.getItem('accountNumber') || '별도 전달'}</span>
+            </div>
+            <div className="grid grid-cols-3 gap-2 font-bold text-gray-700">
+              <span className="text-gray-500">비 고</span>
+              <span className="col-span-2 text-xs">본 명세서는 공도리 앱에서 발행되었습니다.</span>
             </div>
           </div>
         </div>
 
-        <div className="mb-6 flex justify-between items-end">
-          <h2 className="text-xl font-bold">상세 내역</h2>
-          <div className="text-xl font-black text-gray-900">
-            총 합계 : {totalFiltered.toLocaleString()} 원
-          </div>
+        <div className="mb-2 text-sm font-bold text-gray-500">
+          * 아래 내역에 대하여 노무비를 정히 청구합니다.
         </div>
 
-        <table className="w-full border-collapse border border-gray-900 text-sm">
+        <table className="w-full border-collapse border-2 border-gray-900 text-sm mb-12">
           <thead>
-            <tr className="bg-gray-100">
-              <th className="border border-gray-900 p-3 w-[15%]">일자</th>
+            <tr className="bg-gray-100 text-gray-900">
+              <th className="border border-gray-900 p-3 w-[15%]">출역 일자</th>
               <th className="border border-gray-900 p-3 w-[25%]">현장명</th>
-              <th className="border border-gray-900 p-3 w-[45%]">상세 작업 및 특이사항</th>
-              <th className="border border-gray-900 p-3 w-[15%] text-right">금 액</th>
+              <th className="border border-gray-900 p-3 w-[40%]">상세 작업 / 특이사항</th>
+              <th className="border border-gray-900 p-3 w-[20%] text-right">청 구 금 액</th>
             </tr>
           </thead>
           <tbody>
             {sortedRecords.length > 0 ? (
               sortedRecords.map(record => (
                 <tr key={record.id}>
-                  <td className="border border-gray-400 p-3 text-center">{format(parseISO(record.date), 'MM/dd')}</td>
-                  <td className="border border-gray-400 p-3 text-center font-bold">{record.siteName}</td>
-                  <td className="border border-gray-400 p-3">
+                  <td className="border border-gray-400 p-3 text-center">{format(parseISO(record.date), 'yyyy-MM-dd')}</td>
+                  <td className="border border-gray-400 p-3 text-center font-extrabold">{record.siteName}</td>
+                  <td className="border border-gray-400 p-3 text-gray-700">
                     {record.taskContent} {record.memo ? `(${record.memo})` : ''}
                   </td>
-                  <td className="border border-gray-400 p-3 text-right font-bold">{record.amount.toLocaleString()}</td>
+                  <td className="border border-gray-400 p-3 text-right font-extrabold">{record.amount.toLocaleString()}</td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={4} className="border border-gray-400 p-8 text-center text-gray-500">
-                  해당 기간 내역이 없습니다.
+                <td colSpan={4} className="border border-gray-400 p-12 text-center text-gray-500 font-bold">
+                  해당 기간에 청구할 내역이 없습니다.
                 </td>
               </tr>
             )}
-            <tr className="bg-gray-50 font-black">
-              <td colSpan={3} className="border border-gray-900 p-4 text-right text-base">합 계 :</td>
-              <td className="border border-gray-900 p-4 text-right text-base">{totalFiltered.toLocaleString()} 원</td>
+            <tr className="bg-gray-100 border-t-2 border-gray-900">
+              <td colSpan={3} className="border border-gray-900 p-4 text-center font-black text-lg tracking-widest">총 청 구 합 계 (₩)</td>
+              <td className="border border-gray-900 p-4 text-right font-black text-lg">{totalFiltered.toLocaleString()}</td>
             </tr>
           </tbody>
         </table>
+
+        <div className="text-center mt-20">
+          <p className="font-bold text-gray-600 mb-8">위의 청구 금액을 수령하고자 하오니 결제하여 주시기 바랍니다.</p>
+          <div className="flex justify-end pr-10 items-end">
+            <span className="font-bold text-lg mr-4">성 명 :</span>
+            <span className="w-40 border-b border-gray-500"></span>
+            <span className="ml-4 font-bold text-gray-500">(서명/인)</span>
+          </div>
+        </div>
       </div>
 
       {/* Chart Card */}

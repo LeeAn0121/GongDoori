@@ -276,21 +276,44 @@ function MainApp({ session }: { session: Session }) {
     if (view === 'month') {
       const tileDateStr = format(tileDate, 'yyyy-MM-dd')
       const dayRecords = records.filter(r => r.date === tileDateStr)
-      if (dayRecords.length > 0) {
-        const totalAmount = dayRecords.reduce((sum, r) => sum + r.amount, 0)
-        return (
-          <div className="flex flex-col items-center mt-1">
-            <div className="flex gap-0.5 mb-0.5">
-              {dayRecords.map(r => (
-                <div key={r.id} className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: r.color || '#3B82F6' }}></div>
-              ))}
-            </div>
-            <span className="text-[10px] text-blue-600 dark:text-blue-400 font-bold leading-tight">
-              {(totalAmount / 10000).toFixed(0)}만
-            </span>
-          </div>
-        )
+      const isSaturday = tileDate.getDay() === 6;
+      
+      let weeklyTotal = null;
+      if (isSaturday && localStorage.getItem('showWeeklyTotal') === 'true') {
+        // Calculate total for the past 7 days ending on this Saturday
+        const weekStart = new Date(tileDate);
+        weekStart.setDate(weekStart.getDate() - 6);
+        const weekRecords = records.filter(r => {
+          const d = new Date(r.date);
+          return d >= weekStart && d <= tileDate;
+        });
+        const wTotal = weekRecords.reduce((sum, r) => sum + r.amount, 0);
+        if (wTotal > 0) {
+          weeklyTotal = wTotal;
+        }
       }
+
+      return (
+        <div className="flex flex-col items-center mt-1 w-full relative">
+          {dayRecords.length > 0 && (
+            <>
+              <div className="flex gap-0.5 mb-0.5">
+                {dayRecords.map(r => (
+                  <div key={r.id} className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: r.color || '#3B82F6' }}></div>
+                ))}
+              </div>
+              <span className="text-[10px] text-blue-600 dark:text-blue-400 font-bold leading-tight truncate px-1">
+                {(dayRecords.reduce((s, r) => s + r.amount, 0) / 10000).toFixed(0)}만
+              </span>
+            </>
+          )}
+          {weeklyTotal && (
+            <div className="absolute -top-6 -right-2 bg-blue-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-md shadow-md z-10 whitespace-nowrap hidden sm:block">
+              주: {(weeklyTotal / 10000).toFixed(0)}만
+            </div>
+          )}
+        </div>
+      )
     }
     return null
   }
