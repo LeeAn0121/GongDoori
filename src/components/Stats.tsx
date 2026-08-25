@@ -53,7 +53,7 @@ export default function Stats({ records }: { records: any[] }) {
           </div>
         </div>
 
-        <div className="flex-1 w-full min-h-[280px]">
+        <div className="w-full h-[300px] mt-4">
           {chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               {chartType === 'bar' ? (
