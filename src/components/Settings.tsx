@@ -2,10 +2,17 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { Dialog } from '@capacitor/dialog';
 import type { Session } from '@supabase/supabase-js';
-import { ChevronRight, Sparkles, Hammer, Wallet, Palette, Monitor, HelpCircle, CalendarDays, DollarSign, Calculator, Bug, Users, KeyRound, LogOut, Trash2 } from 'lucide-react';
+import { ChevronRight, Sparkles, Hammer, Wallet, Palette, Monitor, HelpCircle, CalendarDays, DollarSign, Calculator, Bug, Users, KeyRound, LogOut, Trash2, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Settings({ session }: { session: Session }) {
   const [displayName, setDisplayName] = useState('');
+  
+  const [isCreateTeamOpen, setIsCreateTeamOpen] = useState(false);
+  const [isJoinTeamOpen, setIsJoinTeamOpen] = useState(false);
+  const [newTeamName, setNewTeamName] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
+  const [joinMessage, setJoinMessage] = useState('');
   
   useEffect(() => {
     fetchProfile();
@@ -96,8 +103,8 @@ export default function Settings({ session }: { session: Session }) {
         {/* Team */}
         <h3 className="text-sm font-extrabold text-gray-500 px-4 mb-3">팀</h3>
         <div className="bg-white dark:bg-slate-800 rounded-3xl overflow-hidden mb-6 shadow-sm border border-gray-100 dark:border-slate-700/50">
-          <ListItem icon={Users} title="팀 만들기" subtitle="팀원들과 현장을 함께 관리해요" onClick={() => {}} />
-          <ListItem icon={KeyRound} title="코드로 참여하기" subtitle="초대 코드를 입력해 팀 가입을 신청해요" onClick={() => {}} />
+          <ListItem icon={Users} title="팀 만들기" subtitle="팀원들과 현장을 함께 관리해요" onClick={() => setIsCreateTeamOpen(true)} />
+          <ListItem icon={KeyRound} title="코드로 참여하기" subtitle="초대 코드를 입력해 팀 가입을 신청해요" onClick={() => setIsJoinTeamOpen(true)} />
         </div>
 
         {/* Account Actions */}
@@ -110,6 +117,123 @@ export default function Settings({ session }: { session: Session }) {
           </button>
         </div>
       </div>
+
+      {/* 팀 만들기 모달 */}
+      <AnimatePresence>
+        {isCreateTeamOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 dark:bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4"
+          >
+            <motion.div 
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="bg-white dark:bg-slate-800 w-full max-w-md rounded-t-[2rem] sm:rounded-3xl p-7 shadow-2xl border-t sm:border border-white/20 dark:border-slate-700"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-extrabold text-gray-900 dark:text-slate-50 tracking-tight">
+                  팀 만들기
+                </h3>
+                <button 
+                  onClick={() => setIsCreateTeamOpen(false)}
+                  className="p-2 bg-gray-100 dark:bg-slate-700 rounded-full text-gray-500 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              
+              <div className="flex flex-col gap-5">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">새 팀 이름</label>
+                  <input 
+                    type="text"
+                    value={newTeamName}
+                    onChange={(e) => setNewTeamName(e.target.value)}
+                    placeholder="팀 이름을 입력하세요"
+                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-lg text-gray-900 dark:text-white placeholder:text-gray-400 placeholder:font-medium"
+                  />
+                  <p className="text-xs font-semibold text-gray-500 mt-2 ml-1">무료 플랜은 팀장 포함 최대 3명까지</p>
+                </div>
+
+                <button 
+                  onClick={() => { Dialog.alert({ title: '안내', message: '팀 만들기 기능은 백엔드 준비 중입니다.' }); setIsCreateTeamOpen(false); }}
+                  className="w-full mt-4 bg-blue-600 text-white font-extrabold text-lg py-4 rounded-xl shadow-md hover:bg-blue-700 active:scale-[0.98] transition-all cursor-pointer"
+                >
+                  만들기
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 팀 가입 신청 모달 */}
+      <AnimatePresence>
+        {isJoinTeamOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 dark:bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4"
+          >
+            <motion.div 
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="bg-white dark:bg-slate-800 w-full max-w-md rounded-t-[2rem] sm:rounded-3xl p-7 shadow-2xl border-t sm:border border-white/20 dark:border-slate-700"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-extrabold text-gray-900 dark:text-slate-50 tracking-tight">
+                  팀 가입 신청
+                </h3>
+                <button 
+                  onClick={() => setIsJoinTeamOpen(false)}
+                  className="p-2 bg-gray-100 dark:bg-slate-700 rounded-full text-gray-500 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              
+              <div className="flex flex-col gap-5">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">초대 코드 6자리</label>
+                  <input 
+                    type="text"
+                    maxLength={6}
+                    value={inviteCode}
+                    onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                    placeholder="예: A1B2C3"
+                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-extrabold text-2xl text-center text-gray-900 dark:text-white placeholder:text-gray-300 placeholder:font-medium uppercase tracking-widest"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">한마디 (선택)</label>
+                  <input 
+                    type="text"
+                    value={joinMessage}
+                    onChange={(e) => setJoinMessage(e.target.value)}
+                    placeholder="팀장에게 남길 메시지"
+                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-[15px]"
+                  />
+                </div>
+
+                <button 
+                  onClick={() => { Dialog.alert({ title: '안내', message: '팀 가입 신청 기능은 백엔드 준비 중입니다.' }); setIsJoinTeamOpen(false); }}
+                  className="w-full mt-4 bg-gray-900 dark:bg-slate-700 text-white font-extrabold text-lg py-4 rounded-xl shadow-md hover:bg-black dark:hover:bg-slate-600 active:scale-[0.98] transition-all cursor-pointer"
+                >
+                  가입 신청
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
