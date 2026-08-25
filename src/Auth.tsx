@@ -93,7 +93,7 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-purple-100 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950 flex flex-col items-center justify-center p-4 transition-colors duration-500">
-      <div className="w-full max-w-md bg-white/80 dark:bg-slate-800/80 backdrop-blur-2xl rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-white/50 dark:border-slate-700/50 p-8">
+      <div className="w-full max-w-3xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-2xl rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-white/50 dark:border-slate-700/50 p-8">
         <div className="flex flex-col items-center mb-8">
           <div className="w-24 h-24 rounded-[2rem] flex items-center justify-center shadow-xl shadow-blue-200/50 dark:shadow-orange-900/30 mb-5 overflow-hidden border-4 border-white dark:border-slate-800">
             <img src={`${import.meta.env.BASE_URL}app_icon_v2.jpg`} alt="공돌이 앱 아이콘" className="w-full h-full object-cover" />

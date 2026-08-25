@@ -12,14 +12,12 @@ export default function Settings({ session }: { session: Session }) {
   const [isCreateTeamOpen, setIsCreateTeamOpen] = useState(false);
   const [isJoinTeamOpen, setIsJoinTeamOpen] = useState(false);
   const [isPremiumOpen, setIsPremiumOpen] = useState(false);
-  const [isSupportOpen, setIsSupportOpen] = useState(false);
   const [isCalSubOpen, setIsCalSubOpen] = useState(false);
   const [isTeamManageOpen, setIsTeamManageOpen] = useState(false);
 
   const [newTeamName, setNewTeamName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
   const [joinMessage, setJoinMessage] = useState('');
-  const [supportContent, setSupportContent] = useState('');
   const [themeMode, setThemeMode] = useState(localStorage.getItem('themePreference') || 'system');
   const [isPremium, setIsPremium] = useState(localStorage.getItem('isPremium') === 'true');
   const [jobType, setJobType] = useState(localStorage.getItem('jobType') || '🏗️ 종합');
@@ -28,6 +26,7 @@ export default function Settings({ session }: { session: Session }) {
   const [showWeeklyTotal, setShowWeeklyTotal] = useState(localStorage.getItem('showWeeklyTotal') === 'true');
   const [defaultWage, setDefaultWage] = useState(localStorage.getItem('defaultWage') || '미설정');
   const [taxDeductionDefault, setTaxDeductionDefault] = useState(localStorage.getItem('taxDeductionDefault') === 'true');
+  const [isColorModalOpen, setIsColorModalOpen] = useState(false);
   
   const [myTeams, setMyTeams] = useState<any[]>([]);
 
@@ -210,6 +209,7 @@ export default function Settings({ session }: { session: Session }) {
     } else {
       document.documentElement.classList.toggle('dark', newMode === 'dark');
     }
+    await Dialog.alert({ title: '안내', message: '테마가 변경되었습니다.' });
   };
 
   const handleQRScanMock = async () => {
@@ -244,6 +244,7 @@ export default function Settings({ session }: { session: Session }) {
     if (result.index >= 0 && result.index < jobs.length) {
       setJobType(jobs[result.index]);
       localStorage.setItem('jobType', jobs[result.index]);
+      await Dialog.alert({ title: '안내', message: '내 직종이 변경되었습니다.' });
     }
   };
 
@@ -256,19 +257,21 @@ export default function Settings({ session }: { session: Session }) {
   };
 
   const handleUpdateMainColor = async () => {
-    const result = await ActionSheet.showActions({ title: '메인 색상 선택', options: [{ title: '블루' }, { title: '오렌지' }, { title: '그린' }] });
-    const colors = ['블루', '오렌지', '그린'];
-    if (result.index >= 0 && result.index < colors.length) {
-      setMainColor(colors[result.index]);
-      localStorage.setItem('mainColor', colors[result.index]);
-      await Dialog.alert({title:'안내', message:'색상이 변경되었습니다. (다음 업데이트에 앱 전반에 적용됩니다)'});
-    }
+    setIsColorModalOpen(true);
+  };
+  
+  const handleSelectMainColor = async (colorHex: string) => {
+    setMainColor(colorHex);
+    localStorage.setItem('mainColor', colorHex);
+    setIsColorModalOpen(false);
+    await Dialog.alert({title:'안내', message:'색상이 변경되었습니다. (다음 업데이트에 앱 전반에 적용됩니다)'});
   };
 
   const handleRestartTutorial = async () => {
     const { value } = await Dialog.confirm({ title: '앱 사용법', message: '튜토리얼을 다시 보시겠습니까?', okButtonTitle: '확인', cancelButtonTitle: '취소' });
     if (value) {
       localStorage.removeItem('hasSeenTutorial');
+      await Dialog.alert({ title: '안내', message: '앱 사용법을 다시 표시합니다.' });
       window.location.reload();
     }
   };
@@ -387,7 +390,7 @@ export default function Settings({ session }: { session: Session }) {
         {/* Support */}
         <h3 className="text-sm font-extrabold text-gray-500 px-4 mb-3">지원</h3>
         <div className="bg-white dark:bg-slate-800 rounded-3xl overflow-hidden mb-6 shadow-sm border border-gray-100 dark:border-slate-700/50">
-          <ListItem icon={Bug} title="버그 제보 / 문의하기" subtitle="사진 첨부해서 문의하면 답변을 알려드려요" onClick={() => setIsSupportOpen(true)} />
+          <ListItem icon={Bug} title="버그 제보 / 문의하기" subtitle="사진 첨부는 Github 핫라인을 이용해주세요" onClick={() => window.open('https://github.com/LeeAn0121/GongDoori/issues/new', '_blank')} />
         </div>
 
         {/* Team */}
@@ -424,7 +427,7 @@ export default function Settings({ session }: { session: Session }) {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="bg-white dark:bg-slate-800 w-full max-w-md rounded-t-[2rem] sm:rounded-3xl p-7 shadow-2xl border-t sm:border border-white/20 dark:border-slate-700"
+              className="bg-white dark:bg-slate-800 w-full max-w-3xl rounded-t-[2rem] sm:rounded-3xl p-7 shadow-2xl border-t sm:border border-white/20 dark:border-slate-700"
             >
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-extrabold text-gray-900 dark:text-slate-50 tracking-tight">
@@ -477,7 +480,7 @@ export default function Settings({ session }: { session: Session }) {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="bg-white dark:bg-slate-800 w-full max-w-md rounded-t-[2rem] sm:rounded-3xl p-7 shadow-2xl border-t sm:border border-white/20 dark:border-slate-700"
+              className="bg-white dark:bg-slate-800 w-full max-w-3xl rounded-t-[2rem] sm:rounded-3xl p-7 shadow-2xl border-t sm:border border-white/20 dark:border-slate-700"
             >
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-extrabold text-gray-900 dark:text-slate-50 tracking-tight">
@@ -541,7 +544,7 @@ export default function Settings({ session }: { session: Session }) {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="bg-white dark:bg-slate-800 w-full max-w-md rounded-t-[2rem] sm:rounded-3xl p-7 shadow-2xl border-t sm:border border-white/20 dark:border-slate-700"
+              className="bg-white dark:bg-slate-800 w-full max-w-3xl rounded-t-[2rem] sm:rounded-3xl p-7 shadow-2xl border-t sm:border border-white/20 dark:border-slate-700"
             >
               <div className="flex flex-col items-center text-center mt-4 mb-6">
                 <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 text-amber-500 rounded-2xl flex items-center justify-center mb-4">
@@ -575,59 +578,51 @@ export default function Settings({ session }: { session: Session }) {
         )}
       </AnimatePresence>
 
-      {/* 고객 지원 모달 */}
+      {/* 메인 색상 모달 */}
       <AnimatePresence>
-        {isSupportOpen && (
+        {isColorModalOpen && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 dark:bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4"
+            className="fixed inset-0 bg-black/50 dark:bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setIsColorModalOpen(false)}
           >
             <motion.div 
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="bg-white dark:bg-slate-800 w-full max-w-md rounded-t-[2rem] sm:rounded-3xl p-7 shadow-2xl border-t sm:border border-white/20 dark:border-slate-700 max-h-[90vh] overflow-y-auto"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-slate-800 w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-white/20 dark:border-slate-700"
+              onClick={e => e.stopPropagation()}
             >
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-extrabold text-gray-900 dark:text-slate-50 tracking-tight">
-                  문의 내역
+                  메인 색상 선택
                 </h3>
                 <button 
-                  onClick={() => setIsSupportOpen(false)}
+                  onClick={() => setIsColorModalOpen(false)}
                   className="p-2 bg-gray-100 dark:bg-slate-700 rounded-full text-gray-500 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
                 >
                   <X size={20} />
                 </button>
               </div>
-              
-              <div className="flex flex-col gap-6">
-                <div className="border-b border-gray-100 dark:border-slate-700 pb-6">
-                  <h4 className="text-sm font-extrabold text-gray-500 mb-3">새 문의하기</h4>
-                  <textarea 
-                    value={supportContent}
-                    onChange={(e) => setSupportContent(e.target.value)}
-                    placeholder="버그나 개선사항을 자유롭게 남겨주세요"
-                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-[15px] h-32 resize-none mb-3"
-                  />
-                  <div className="flex gap-2">
-                    <button className="flex-1 py-3.5 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 font-bold rounded-xl hover:bg-gray-200 transition-colors text-sm">
-                      사진 첨부
-                    </button>
-                    <button className="flex-1 py-3.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors text-sm">
-                      문의 등록
-                    </button>
+              <div className="grid grid-cols-3 gap-6 place-items-center">
+                {[
+                  { label: '블루', color: '#3B82F6' },
+                  { label: '레드', color: '#EF4444' },
+                  { label: '그린', color: '#10B981' },
+                  { label: '퍼플', color: '#8B5CF6' },
+                  { label: '오렌지', color: '#F97316' },
+                  { label: '그레이', color: '#6B7280' }
+                ].map((item) => (
+                  <div key={item.label} className="flex flex-col items-center gap-2 cursor-pointer" onClick={() => handleSelectMainColor(item.color)}>
+                    <div 
+                      className={`w-14 h-14 rounded-full shadow-md border-4 transition-transform ${mainColor === item.color ? 'border-gray-900 dark:border-white scale-110' : 'border-transparent hover:scale-105'}`}
+                      style={{ backgroundColor: item.color }}
+                    ></div>
+                    <span className="text-sm font-bold text-gray-600 dark:text-gray-300">{item.label}</span>
                   </div>
-                </div>
-
-                <div>
-                  <h4 className="text-sm font-extrabold text-gray-500 mb-3">전체 문의 관리</h4>
-                  <div className="flex flex-col items-center justify-center py-10 bg-gray-50 dark:bg-slate-900 rounded-xl">
-                    <p className="text-sm font-semibold text-gray-400">등록된 문의 내역이 없습니다.</p>
-                  </div>
-                </div>
+                ))}
               </div>
             </motion.div>
           </motion.div>
@@ -647,7 +642,7 @@ export default function Settings({ session }: { session: Session }) {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="bg-white dark:bg-slate-800 w-full max-w-md rounded-t-[2rem] sm:rounded-3xl p-7 shadow-2xl border-t sm:border border-white/20 dark:border-slate-700"
+              className="bg-white dark:bg-slate-800 w-full max-w-3xl rounded-t-[2rem] sm:rounded-3xl p-7 shadow-2xl border-t sm:border border-white/20 dark:border-slate-700"
             >
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-extrabold text-gray-900 dark:text-slate-50 tracking-tight">
@@ -705,7 +700,7 @@ export default function Settings({ session }: { session: Session }) {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="bg-white dark:bg-slate-800 w-full max-w-md rounded-t-[2rem] sm:rounded-3xl p-7 shadow-2xl border-t sm:border border-white/20 dark:border-slate-700 max-h-[90vh] overflow-y-auto"
+              className="bg-white dark:bg-slate-800 w-full max-w-3xl rounded-t-[2rem] sm:rounded-3xl p-7 shadow-2xl border-t sm:border border-white/20 dark:border-slate-700 max-h-[90vh] overflow-y-auto"
             >
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-extrabold text-gray-900 dark:text-slate-50 tracking-tight">

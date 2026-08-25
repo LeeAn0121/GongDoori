@@ -431,7 +431,7 @@ export default function Stats({ records }: { records: any[] }) {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="bg-white dark:bg-slate-800 w-full max-w-md rounded-t-[2rem] sm:rounded-3xl p-7 shadow-2xl border-t sm:border border-white/20 dark:border-slate-700"
+              className="bg-white dark:bg-slate-800 w-full max-w-3xl rounded-t-[2rem] sm:rounded-3xl p-7 shadow-2xl border-t sm:border border-white/20 dark:border-slate-700"
             >
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-extrabold text-gray-900 dark:text-slate-50 tracking-tight">
