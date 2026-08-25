@@ -30,6 +30,14 @@ if [ -f "$IOS_PBXPROJ" ]; then
   sed -i '' "s/CURRENT_PROJECT_VERSION = [^\;]*;/CURRENT_PROJECT_VERSION = $VERSION_CODE;/" "$IOS_PBXPROJ"
   echo "✅ iOS project.pbxproj 버전 동기화 완료"
 fi
+
+# RELESENOTE.md 자동 작성 (append)
+RELEASE_NOTE_FILE="RELESENOTE.md"
+echo "<ko-KR>" >> "$RELEASE_NOTE_FILE"
+echo "공돌이 - GongDoori $VERSION_NAME 출시" >> "$RELEASE_NOTE_FILE"
+echo "</ko-KR>" >> "$RELEASE_NOTE_FILE"
+echo "" >> "$RELEASE_NOTE_FILE"
+echo "📝 릴리즈 노트 자동 업데이트 완료 ($RELEASE_NOTE_FILE)"
 echo ""
 
 echo "🚀 [1/4] React(Vite) 웹 애플리케이션 빌드 중..."
