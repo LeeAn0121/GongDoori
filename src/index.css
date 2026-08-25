@@ -7,6 +7,18 @@
     font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
     -webkit-tap-highlight-color: transparent;
   }
+  :root {
+    --mc-50: #eff6ff;
+    --mc-100: #dbeafe;
+    --mc-200: #bfdbfe;
+    --mc-300: #93c5fd;
+    --mc-400: #60a5fa;
+    --mc-500: #3b82f6;
+    --mc-600: #2563eb;
+    --mc-700: #1d4ed8;
+    --mc-800: #1e40af;
+    --mc-900: #1e3a8a;
+  }
   body {
     @apply bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-gray-50 antialiased;
     overscroll-behavior-y: none;
@@ -28,14 +40,14 @@
 }
 
 @theme {
-  --color-primary-50: var(--mc-50, #eff6ff);
-  --color-primary-100: var(--mc-100, #dbeafe);
-  --color-primary-200: var(--mc-200, #bfdbfe);
-  --color-primary-300: var(--mc-300, #93c5fd);
-  --color-primary-400: var(--mc-400, #60a5fa);
-  --color-primary-500: var(--mc-500, #3b82f6);
-  --color-primary-600: var(--mc-600, #2563eb);
-  --color-primary-700: var(--mc-700, #1d4ed8);
-  --color-primary-800: var(--mc-800, #1e40af);
-  --color-primary-900: var(--mc-900, #1e3a8a);
+  --color-primary-50: var(--mc-50);
+  --color-primary-100: var(--mc-100);
+  --color-primary-200: var(--mc-200);
+  --color-primary-300: var(--mc-300);
+  --color-primary-400: var(--mc-400);
+  --color-primary-500: var(--mc-500);
+  --color-primary-600: var(--mc-600);
+  --color-primary-700: var(--mc-700);
+  --color-primary-800: var(--mc-800);
+  --color-primary-900: var(--mc-900);
 }
