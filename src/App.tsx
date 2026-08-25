@@ -260,17 +260,48 @@ function MainApp({ session }: { session: Session }) {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
             >
+              
+              {/* Dashboard Summary Card */}
+              <div className="bg-gradient-to-br from-blue-600 to-blue-800 dark:from-slate-800 dark:to-slate-900 rounded-3xl p-6 mb-4 shadow-[0_8px_30px_rgb(37,99,235,0.2)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] text-white relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+                <div className="relative z-10">
+                  <p className="text-blue-100 dark:text-gray-400 font-semibold mb-1 text-sm">{format(activeStartDate || date, 'yyyy년 M월')} 총 수입</p>
+                  <div className="flex items-end gap-2">
+                    <h2 className="text-4xl font-extrabold tracking-tight">
+                      {records
+                        .filter(r => r.date.startsWith(format(activeStartDate || date, 'yyyy-MM')))
+                        .reduce((sum, r) => sum + r.amount, 0).toLocaleString()}
+                    </h2>
+                    <span className="text-lg font-bold text-blue-200 dark:text-gray-500 mb-1">원</span>
+                  </div>
+                  
+                  <div className="flex gap-3 mt-6">
+                    <button 
+                      onClick={() => { resetForm(); setIsSchedule(false); setIsModalOpen(true); }}
+                      className="flex-1 bg-white dark:bg-blue-600 text-blue-600 dark:text-white py-3 rounded-2xl font-extrabold text-sm shadow-sm hover:bg-gray-50 dark:hover:bg-blue-500 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                    >
+                      <Plus size={18} strokeWidth={3} /> 일당 기록
+                    </button>
+                    <button 
+                      onClick={() => { resetForm(); setIsSchedule(true); setIsModalOpen(true); }}
+                      className="flex-1 bg-blue-700/50 dark:bg-slate-700 text-white py-3 rounded-2xl font-extrabold text-sm shadow-sm hover:bg-blue-700/70 dark:hover:bg-slate-600 active:scale-95 transition-all flex items-center justify-center gap-1.5 backdrop-blur-md"
+                    >
+                      <CalendarIcon size={18} strokeWidth={2.5} /> 일정 메모
+                    </button>
+                  </div>
+                </div>
+              </div>
               {/* Calendar Card */}
-              <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] border border-white/50 dark:border-slate-700/50 p-5 overflow-hidden relative mb-4">
+              <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] dark:shadow-[0_4px_20px_rgb(0,0,0,0.2)] border border-white/50 dark:border-slate-700/50 p-5 overflow-hidden relative mb-4">
                 <button 
                   onClick={() => {
                     const now = new Date();
                     setDate(now);
                     setActiveStartDate(now);
                   }}
-                  className="absolute top-5 right-5 z-10 px-3.5 py-1.5 text-xs font-bold bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-full hover:bg-blue-100 dark:hover:bg-blue-500/20 active:scale-95 transition-all shadow-sm"
+                  className="absolute top-5 right-5 z-10 px-3.5 py-1.5 text-xs font-bold bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-full hover:bg-gray-200 dark:hover:bg-slate-600 active:scale-95 transition-all shadow-sm"
                 >
-                  오늘
+                  오늘로 이동
                 </button>
             <style>{`
               .react-calendar { border: none !important; width: 100% !important; font-family: inherit !important; background: transparent !important; }
@@ -400,24 +431,24 @@ function MainApp({ session }: { session: Session }) {
       </main>
 
       {/* Bottom Navigation Bar */}
-      <nav className="fixed bottom-0 w-full max-w-md bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-gray-200/80 dark:border-slate-700/80 pb-[env(safe-area-inset-bottom)] z-40 shadow-[0_-8px_30px_rgba(0,0,0,0.04)]">
+      <nav className="fixed bottom-0 w-full max-w-md bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-gray-200/80 dark:border-slate-800 pb-[env(safe-area-inset-bottom)] z-40 shadow-[0_-8px_30px_rgba(0,0,0,0.04)]">
         <div className="flex justify-around items-center h-16 px-2">
           {[
-            { id: 'calendar', icon: CalendarIcon, label: '캘린더' },
+            { id: 'calendar', icon: CalendarIcon, label: '홈' },
             { id: 'site', icon: MapPin, label: '작업현장' },
             { id: 'settlement', icon: DollarSign, label: '내 지갑' },
             { id: 'stats', icon: BarChart2, label: '리포트' },
-            { id: 'settings', icon: SettingsIcon, label: '내 정보' },
+            { id: 'settings', icon: SettingsIcon, label: '설정' },
           ].map((item) => {
             const isActive = currentView === item.id;
             return (
               <button 
                 key={item.id}
                 onClick={() => setCurrentView(item.id as any)} 
-                className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-all duration-300 ${isActive ? 'text-blue-600 dark:text-orange-400 scale-110' : 'text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300'}`}
+                className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-all duration-300 ${isActive ? 'text-blue-600 dark:text-blue-400 scale-105' : 'text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300'}`}
               >
                 {isActive && (
-                  <span className="absolute -top-3.5 w-8 h-1 rounded-full bg-blue-600 dark:bg-orange-500 animate-in fade-in zoom-in duration-300"></span>
+                  <span className="absolute -top-3.5 w-8 h-1 rounded-full bg-blue-600 dark:bg-blue-500 animate-in fade-in zoom-in duration-300"></span>
                 )}
                 <item.icon size={24} strokeWidth={isActive ? 2.5 : 2} className={isActive ? 'drop-shadow-sm' : ''} />
                 <span className={`text-[10px] ${isActive ? 'font-extrabold' : 'font-semibold'}`}>{item.label}</span>
@@ -428,23 +459,9 @@ function MainApp({ session }: { session: Session }) {
       </nav>
 
       {/* Floating Action Button (Only on home) */}
+      {/* We removed the huge FAB because Quick Actions are now at the top of the dashboard for better UX! */}
       <AnimatePresence>
-        {currentView === 'calendar' && (
-          <motion.div 
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-            className="fixed bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] w-full max-w-md px-4 pointer-events-none flex justify-end z-30"
-          >
-            <button 
-              onClick={() => { resetForm(); setIsModalOpen(true); }}
-              className="w-16 h-16 bg-blue-600 dark:bg-blue-500 text-white rounded-[1.25rem] shadow-xl shadow-blue-300/50 dark:shadow-blue-900/50 flex items-center justify-center pointer-events-auto hover:bg-blue-700 dark:hover:bg-blue-600 active:scale-90 transition-all cursor-pointer rotate-0 hover:rotate-90 duration-300"
-            >
-              <Plus size={32} strokeWidth={2.5} />
-            </button>
-          </motion.div>
-        )}
+        {/* We kept this AnimatePresence just in case, but no FAB rendered anymore */}
       </AnimatePresence>
 
       {/* Add Record Modal */}
