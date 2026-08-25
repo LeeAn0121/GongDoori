@@ -2,16 +2,16 @@ import { MapPin, Search, ChevronRight, Briefcase, ArrowLeft, Calendar } from 'lu
 import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-export default function SiteManager({ records, setCurrentView }: { records: any[], setCurrentView: (view: 'calendar' | 'site' | 'settlement' | 'stats' | 'settings') => void }) {
+export default function SiteManager({ records, settlements, setCurrentView }: { records: any[], settlements: any[], setCurrentView: (view: 'calendar' | 'site' | 'settlement' | 'stats' | 'settings') => void }) {
   const [search, setSearch] = useState('');
   const [selectedSite, setSelectedSite] = useState<string | null>(null);
 
   const groupedSites = useMemo(() => {
-    const map: Record<string, { totalAmount: number, days: number, color: string, lastDate: string, records: any[] }> = {};
+    const map: Record<string, { totalAmount: number, paidAmount: number, unpaidAmount: number, days: number, color: string, lastDate: string, records: any[] }> = {};
     records.forEach(r => {
       const site = r.siteName || '미지정 현장';
       if (!map[site]) {
-        map[site] = { totalAmount: 0, days: 0, color: r.color || '#3b82f6', lastDate: r.date, records: [] };
+        map[site] = { totalAmount: 0, paidAmount: 0, unpaidAmount: 0, days: 0, color: r.color || '#3b82f6', lastDate: r.date, records: [] };
       }
       map[site].totalAmount += Number(r.amount) || 0;
       map[site].days += 1;
@@ -20,9 +20,16 @@ export default function SiteManager({ records, setCurrentView }: { records: any[
         map[site].lastDate = r.date;
       }
     });
-    
-    // Sort inner records by date descending
+
+    settlements?.forEach(s => {
+      const site = s.siteName;
+      if (map[site]) {
+        map[site].paidAmount += Number(s.amount) || 0;
+      }
+    });
+
     Object.values(map).forEach(site => {
+      site.unpaidAmount = Math.max(0, site.totalAmount - site.paidAmount);
       site.records.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     });
 
@@ -86,32 +93,54 @@ export default function SiteManager({ records, setCurrentView }: { records: any[
                   </button>
                 </div>
               ) : (
-                groupedSites.map((site, idx) => (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                    key={site.name} 
-                    onClick={() => setSelectedSite(site.name)}
-                    className="flex items-center justify-between p-5 bg-white dark:bg-slate-800 rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-gray-100/50 dark:border-slate-700/50 hover:border-blue-200 dark:hover:border-slate-600 transition-all active:scale-[0.98] cursor-pointer group"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-105" style={{ backgroundColor: site.color + '20', color: site.color }}>
-                        <MapPin size={26} strokeWidth={2.5} />
+                groupedSites.map((site, idx) => {
+                  const progress = site.totalAmount > 0 ? (site.paidAmount / site.totalAmount) * 100 : 0;
+                  return (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      key={site.name} 
+                      onClick={() => setSelectedSite(site.name)}
+                      className="flex flex-col p-5 bg-white dark:bg-slate-800 rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-gray-100/50 dark:border-slate-700/50 hover:border-blue-200 dark:hover:border-slate-600 transition-all active:scale-[0.98] cursor-pointer group"
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-4">
+                          <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-105" style={{ backgroundColor: site.color + '20', color: site.color }}>
+                            <MapPin size={26} strokeWidth={2.5} />
+                          </div>
+                          <div className="flex flex-col">
+                            <h4 className="font-extrabold text-gray-900 dark:text-slate-100 text-lg mb-1 tracking-tight">{site.name}</h4>
+                            <p className="text-xs font-semibold text-gray-500 dark:text-slate-400">
+                              총 <span className="text-blue-600 dark:text-orange-400 font-bold">{site.days}일</span> 출역 • 최근 {site.lastDate.substring(5)}
+                            </p>
+                          </div>
+                        </div>
+                        <ChevronRight size={18} className="text-gray-300 dark:text-slate-600 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
                       </div>
-                      <div className="flex flex-col">
-                        <h4 className="font-extrabold text-gray-900 dark:text-slate-100 text-lg mb-1 tracking-tight">{site.name}</h4>
-                        <p className="text-xs font-semibold text-gray-500 dark:text-slate-400">
-                          총 <span className="text-blue-600 dark:text-orange-400 font-bold">{site.days}일</span> 출역 • 최근 {site.lastDate.substring(5)}
-                        </p>
+                      
+                      <div className="flex flex-col gap-2 bg-gray-50 dark:bg-slate-900/50 rounded-2xl p-4 border border-gray-100 dark:border-slate-700/50">
+                        <div className="flex justify-between text-sm">
+                          <span className="font-semibold text-gray-500 dark:text-slate-400">수금 진척도</span>
+                          <span className="font-extrabold text-gray-900 dark:text-slate-100">{Math.round(progress)}%</span>
+                        </div>
+                        <div className="h-2 w-full bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                          <div className="h-full bg-blue-500 dark:bg-orange-500 rounded-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
+                        </div>
+                        <div className="flex justify-between mt-1 text-xs">
+                          <div className="flex flex-col">
+                            <span className="text-gray-400 dark:text-slate-500">받은 금액</span>
+                            <span className="font-bold text-gray-700 dark:text-slate-300">{site.paidAmount.toLocaleString()}원</span>
+                          </div>
+                          <div className="flex flex-col items-end">
+                            <span className="text-red-400 dark:text-red-400/80 font-bold">미수금</span>
+                            <span className="font-extrabold text-red-500 dark:text-red-400">{site.unpaidAmount.toLocaleString()}원</span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-1">
-                      <span className="font-extrabold text-gray-900 dark:text-slate-50 text-lg tracking-tight">{site.totalAmount.toLocaleString()}원</span>
-                      <ChevronRight size={18} className="text-gray-300 dark:text-slate-600 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
-                    </div>
-                  </motion.div>
-                ))
+                    </motion.div>
+                  );
+                })
               )}
             </div>
           </motion.div>
@@ -148,9 +177,13 @@ export default function SiteManager({ records, setCurrentView }: { records: any[
                   <p className="text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">총 출역일</p>
                   <p className="text-xl font-extrabold text-gray-900 dark:text-slate-50">{selectedSiteData?.days}일</p>
                 </div>
-                <div className="flex-1 bg-blue-50/50 dark:bg-orange-900/10 p-4 rounded-2xl border border-blue-100/50 dark:border-orange-900/20">
-                  <p className="text-xs font-bold text-blue-600/80 dark:text-orange-400/80 mb-1">총 수입</p>
-                  <p className="text-xl font-extrabold text-blue-600 dark:text-orange-400">{selectedSiteData?.totalAmount.toLocaleString()}원</p>
+                <div className="flex-1 bg-blue-50/50 dark:bg-blue-900/10 p-4 rounded-2xl border border-blue-100/50 dark:border-blue-900/20">
+                  <p className="text-xs font-bold text-blue-600/80 dark:text-blue-400/80 mb-1">총 발생 금액</p>
+                  <p className="text-xl font-extrabold text-blue-600 dark:text-blue-400">{selectedSiteData?.totalAmount.toLocaleString()}원</p>
+                </div>
+                <div className="flex-1 bg-red-50/50 dark:bg-red-900/10 p-4 rounded-2xl border border-red-100/50 dark:border-red-900/20">
+                  <p className="text-xs font-bold text-red-500/80 dark:text-red-400/80 mb-1">총 미수금</p>
+                  <p className="text-xl font-extrabold text-red-500 dark:text-red-400">{selectedSiteData?.unpaidAmount.toLocaleString()}원</p>
                 </div>
               </div>
             </div>

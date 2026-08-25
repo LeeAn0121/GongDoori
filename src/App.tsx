@@ -562,7 +562,7 @@ function MainApp({ session }: { session: Session }) {
 
         {currentView === 'settings' && <motion.div key="settings" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><Settings session={session} /></motion.div>}
 
-        {currentView === 'site' && <motion.div key="site" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><SiteManager records={records} setCurrentView={setCurrentView} /></motion.div>}
+        {currentView === 'site' && <motion.div key="site" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><SiteManager records={records} settlements={settlements} setCurrentView={setCurrentView} /></motion.div>}
 
         {currentView === 'settlement' && <motion.div key="settlement" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><SettlementManager records={records} settlements={settlements} setSettlements={setSettlements} setCurrentView={setCurrentView} onUpdateStatus={handleUpdateStatus} session={session} /></motion.div>}
       </AnimatePresence>
