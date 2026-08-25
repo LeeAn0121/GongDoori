@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Calendar } from 'react-calendar'
-import { Plus, MapPin, DollarSign, AlignLeft, Trash2, Edit2, Calendar as CalendarIcon, MoreVertical, BarChart2, Settings as SettingsIcon, Sun, Moon } from 'lucide-react'
+import { Plus, MapPin, DollarSign, AlignLeft, Trash2, Edit2, Calendar as CalendarIcon, MoreVertical, BarChart2, Settings as SettingsIcon, Sun, Moon, X } from 'lucide-react'
 import { format } from 'date-fns'
 import { supabase } from './supabaseClient'
 import type { Session } from '@supabase/supabase-js'
@@ -56,6 +56,9 @@ function MainApp({ session }: { session: Session }) {
   const [color, setColor] = useState('#3B82F6')
   const [memo, setMemo] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
+  
+  // Daily Detail Modal state
+  const [isDailyDetailOpen, setIsDailyDetailOpen] = useState(false)
   const [isSchedule, setIsSchedule] = useState(false)
   const [expandedRecordId, setExpandedRecordId] = useState<string | null>(null)
 
@@ -303,9 +306,9 @@ function MainApp({ session }: { session: Session }) {
                     setDate(now);
                     setActiveStartDate(now);
                   }}
-                  className="absolute top-5 right-5 z-10 px-3.5 py-1.5 text-xs font-bold bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-full hover:bg-gray-200 dark:hover:bg-slate-600 active:scale-95 transition-all shadow-sm"
+                  className="absolute top-5 right-5 z-10 px-3.5 py-1.5 text-xs font-bold bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-full hover:bg-blue-100 dark:hover:bg-blue-500/20 active:scale-95 transition-all shadow-sm"
                 >
-                  오늘로 이동
+                  오늘
                 </button>
             <style>{`
               .react-calendar { border: none !important; width: 100% !important; font-family: inherit !important; background: transparent !important; }
@@ -318,15 +321,13 @@ function MainApp({ session }: { session: Session }) {
               .react-calendar__tile { padding: 0.5em 0.25em !important; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; height: 68px; font-size: 0.95rem; font-weight: 600; border-radius: 1rem; color: inherit; transition: all 0.2s; }
               .react-calendar__tile:enabled:hover, .react-calendar__tile:enabled:focus { background: rgba(0,0,0,0.04) !important; }
               .dark .react-calendar__tile:enabled:hover, .dark .react-calendar__tile:enabled:focus { background: rgba(255,255,255,0.05) !important; }
-              .react-calendar__tile--now { background: #eff6ff !important; color: #2563eb !important; }
-              .dark .react-calendar__tile--now { background: rgba(59, 130, 246, 0.15) !important; color: #60a5fa !important; }
-              .react-calendar__tile--active { background: #2563eb !important; color: white !important; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3); }
-              .dark .react-calendar__tile--active { background: #3b82f6 !important; color: white !important; box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4); }
-              .react-calendar__tile--active span { color: white !important; }
-              .react-calendar__tile--active .text-blue-600, .react-calendar__tile--active .dark\\:text-blue-400 { color: white !important; }
+              
+              /* Unify 'now' (today) and 'active' (selected) styles */
+              .react-calendar__tile--now, .react-calendar__tile--active { background: #eff6ff !important; color: #2563eb !important; border: 2px solid #bfdbfe !important; }
+              .dark .react-calendar__tile--now, .dark .react-calendar__tile--active { background: rgba(59, 130, 246, 0.15) !important; color: #60a5fa !important; border: 2px solid rgba(59, 130, 246, 0.3) !important; box-shadow: none !important; }
             `}</style>
           <Calendar 
-            onChange={setDate as any} 
+            onChange={(val) => { setDate(val as any); setIsDailyDetailOpen(true); }} 
             value={date}
             activeStartDate={activeStartDate || undefined}
             onActiveStartDateChange={({ activeStartDate }) => setActiveStartDate(activeStartDate as Date)}
@@ -336,89 +337,115 @@ function MainApp({ session }: { session: Session }) {
           />
         </div>
         
-        {/* Daily Details List */}
-        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] border border-white/50 dark:border-slate-700/50 p-6 min-h-[250px]">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-extrabold text-gray-900 dark:text-slate-50 tracking-tight">
-              {format(date, 'M월 d일')} 기록
-            </h2>
-            {selectedRecords.length > 0 && (
-              <span className="text-sm font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 px-3 py-1.5 rounded-full shadow-sm">
-                총 {selectedRecords.reduce((sum, r) => sum + r.amount, 0).toLocaleString()}원
-              </span>
-            )}
-          </div>
-
-          {selectedRecords.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-gray-900 dark:text-gray-400 dark:text-slate-500">
-              <div className="w-16 h-16 bg-gray-50/50 dark:bg-slate-900/50 rounded-[2rem] flex items-center justify-center mb-4 shadow-inner border border-gray-100 dark:border-slate-800">
-                <DollarSign size={28} className="text-gray-300 dark:text-slate-600" />
-              </div>
-              <p className="text-sm font-semibold text-gray-500 dark:text-slate-400 tracking-tight">등록된 현장 내역이 없습니다</p>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-4">
-              {selectedRecords.map(record => {
-                const isItemSchedule = record.amount === 0 && !record.poomsu
-                const isExpanded = expandedRecordId === record.id
-                return (
-                  <div key={record.id} className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 flex flex-col relative overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                    <div className="p-4 flex flex-col gap-2 cursor-pointer" onClick={() => toggleExpand(record.id)}>
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-center gap-2 text-gray-900 dark:text-slate-50 font-extrabold">
-                          <div className={`p-1.5 rounded-lg ${isItemSchedule ? 'bg-purple-50 dark:bg-emerald-500/10' : 'bg-blue-50 dark:bg-blue-500/10'}`}>
-                            {isItemSchedule ? <CalendarIcon size={16} className="text-purple-500 dark:text-emerald-400" /> : <MapPin size={16} className="text-blue-600 dark:text-blue-400" />}
-                          </div>
-                          {record.siteName}
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className={`font-extrabold ${isItemSchedule ? 'text-purple-600 dark:text-emerald-400' : 'text-blue-600 dark:text-blue-400'}`}>
-                            {isItemSchedule ? '일정' : `${record.amount.toLocaleString()}원`}
-                          </div>
-                          <button className="p-1 -mr-2 text-gray-400 dark:text-slate-500 transition-colors">
-                            <MoreVertical size={20} />
-                          </button>
-                        </div>
-                      </div>
-                      {(record.taskContent || record.memo) && (
-                        <div className="flex flex-col text-gray-600 dark:text-slate-400 text-sm mt-1 pr-8 leading-relaxed font-medium">
-                          {record.taskContent && <span className="font-bold text-gray-800 dark:text-slate-300">[{record.taskContent}]</span>}
-                          {record.memo && <span>{record.memo}</span>}
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* Expandable Action Menu */}
-                    <AnimatePresence>
-                      {isExpanded && (
-                        <motion.div 
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          className="flex border-t border-gray-100 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-900/30 overflow-hidden"
-                        >
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); openEdit(record); setExpandedRecordId(null); }} 
-                            className="flex-1 py-3.5 flex items-center justify-center gap-2 text-sm font-bold text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors active:bg-gray-100 dark:active:bg-slate-800 cursor-pointer"
-                          >
-                            <Edit2 size={16} /> 수정
-                          </button>
-                          <div className="w-[1px] bg-gray-200 dark:bg-slate-700 my-2"></div>
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); handleDelete(record.id); setExpandedRecordId(null); }} 
-                            className="flex-1 py-3.5 flex items-center justify-center gap-2 text-sm font-bold text-gray-700 dark:text-slate-300 hover:text-red-500 dark:hover:text-red-400 transition-colors active:bg-gray-100 dark:active:bg-slate-800 cursor-pointer"
-                          >
-                            <Trash2 size={16} /> 삭제
-                          </button>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+        
+        {/* Daily Details Modal (Replaces inline list) */}
+        <AnimatePresence>
+          {isDailyDetailOpen && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 dark:bg-black/80 backdrop-blur-sm z-50 flex flex-col justify-end"
+              onClick={() => setIsDailyDetailOpen(false)}
+            >
+              <motion.div 
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: '100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl w-full max-w-md mx-auto rounded-t-[2rem] p-6 shadow-2xl border-t border-white/20 dark:border-slate-700 min-h-[50vh] max-h-[85vh] overflow-y-auto flex flex-col"
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="w-12 h-1.5 bg-gray-300 dark:bg-slate-600 rounded-full mx-auto mb-6 shrink-0"></div>
+                <div className="flex justify-between items-center mb-6 shrink-0">
+                  <h2 className="text-2xl font-extrabold text-gray-900 dark:text-slate-50 tracking-tight">
+                    {format(date, 'M월 d일')} 기록
+                  </h2>
+                  <div className="flex items-center gap-2">
+                    {selectedRecords.length > 0 && (
+                      <span className="text-sm font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 px-3 py-1.5 rounded-full shadow-sm">
+                        총 {selectedRecords.reduce((sum, r) => sum + r.amount, 0).toLocaleString()}원
+                      </span>
+                    )}
+                    <button onClick={() => setIsDailyDetailOpen(false)} className="p-2 bg-gray-100 dark:bg-slate-700 rounded-full text-gray-500">
+                      <X size={20} />
+                    </button>
                   </div>
-                )
-              })}
-            </div>
+                </div>
+
+                {selectedRecords.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-gray-900 dark:text-gray-400 dark:text-slate-500 flex-1">
+                    <div className="w-16 h-16 bg-gray-50/50 dark:bg-slate-900/50 rounded-[2rem] flex items-center justify-center mb-4 shadow-inner border border-gray-100 dark:border-slate-800">
+                      <DollarSign size={28} className="text-gray-300 dark:text-slate-600" />
+                    </div>
+                    <p className="text-sm font-semibold text-gray-500 dark:text-slate-400 tracking-tight">등록된 현장 내역이 없습니다</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-4 overflow-y-auto pb-8">
+                    {selectedRecords.map(record => {
+                      const isItemSchedule = record.amount === 0 && !record.poomsu
+                      const isExpanded = expandedRecordId === record.id
+                      return (
+                        <div key={record.id} className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 flex flex-col relative overflow-hidden shadow-sm hover:shadow-md transition-shadow shrink-0">
+                          <div className="p-4 flex flex-col gap-2 cursor-pointer" onClick={() => toggleExpand(record.id)}>
+                            <div className="flex justify-between items-start">
+                              <div className="flex items-center gap-2 text-gray-900 dark:text-slate-50 font-extrabold">
+                                <div className={`p-1.5 rounded-lg ${isItemSchedule ? 'bg-purple-50 dark:bg-emerald-500/10' : 'bg-blue-50 dark:bg-blue-500/10'}`}>
+                                  {isItemSchedule ? <CalendarIcon size={16} className="text-purple-500 dark:text-emerald-400" /> : <MapPin size={16} className="text-blue-600 dark:text-blue-400" />}
+                                </div>
+                                {record.siteName}
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <div className={`font-extrabold ${isItemSchedule ? 'text-purple-600 dark:text-emerald-400' : 'text-blue-600 dark:text-blue-400'}`}>
+                                  {isItemSchedule ? '일정' : `${record.amount.toLocaleString()}원`}
+                                </div>
+                                <button className="p-1 -mr-2 text-gray-400 dark:text-slate-500 transition-colors">
+                                  <MoreVertical size={20} />
+                                </button>
+                              </div>
+                            </div>
+                            {(record.taskContent || record.memo) && (
+                              <div className="flex flex-col text-gray-600 dark:text-slate-400 text-sm mt-1 pr-8 leading-relaxed font-medium">
+                                {record.taskContent && <span className="font-bold text-gray-800 dark:text-slate-300">[{record.taskContent}]</span>}
+                                {record.memo && <span>{record.memo}</span>}
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Expandable Action Menu */}
+                          <AnimatePresence>
+                            {isExpanded && (
+                              <motion.div 
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="flex border-t border-gray-100 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-900/30 overflow-hidden"
+                              >
+                                <button 
+                                  onClick={(e) => { e.stopPropagation(); openEdit(record); setExpandedRecordId(null); setIsDailyDetailOpen(false); }} 
+                                  className="flex-1 py-3.5 flex items-center justify-center gap-2 text-sm font-bold text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors active:bg-gray-100 dark:active:bg-slate-800 cursor-pointer"
+                                >
+                                  <Edit2 size={16} /> 수정
+                                </button>
+                                <div className="w-[1px] bg-gray-200 dark:bg-slate-700 my-2"></div>
+                                <button 
+                                  onClick={(e) => { e.stopPropagation(); handleDelete(record.id); setExpandedRecordId(null); }} 
+                                  className="flex-1 py-3.5 flex items-center justify-center gap-2 text-sm font-bold text-gray-700 dark:text-slate-300 hover:text-red-500 dark:hover:text-red-400 transition-colors active:bg-gray-100 dark:active:bg-slate-800 cursor-pointer"
+                                >
+                                  <Trash2 size={16} /> 삭제
+                                </button>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </motion.div>
+            </motion.div>
           )}
-        </div>
+        </AnimatePresence>
         </motion.div>
         )}
 
