@@ -10,6 +10,31 @@ import { downloadAndShareBase64 } from '../utils/download';
 
 import { Html5QrcodeScanner } from 'html5-qrcode';
 
+const QRScanner = ({ onScan }: { onScan: (text: string) => void }) => {
+  useEffect(() => {
+    const scanner = new Html5QrcodeScanner(
+      "qr-reader", 
+      { fps: 10, qrbox: { width: 250, height: 250 } }, 
+      false
+    );
+    scanner.render(
+      (decodedText) => {
+        scanner.clear();
+        onScan(decodedText);
+      },
+      (error) => {
+        // ignore errors for each frame
+      }
+    );
+
+    return () => {
+      scanner.clear().catch(console.error);
+    };
+  }, [onScan]);
+
+  return <div id="qr-reader" className="w-full max-w-sm bg-white rounded-2xl overflow-hidden shadow-lg border-none [&_div]:border-none [&_video]:rounded-xl"></div>;
+};
+
 export default function Settings({ session }: { session: Session }) {
   const [displayName, setDisplayName] = useState('');
   
@@ -42,21 +67,8 @@ export default function Settings({ session }: { session: Session }) {
     fetchTeams();
   }, []);
 
-  useEffect(() => {
-    if (isScannerOpen) {
-      const scanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
-      scanner.render(async (decodedText) => {
-        scanner.clear();
-        setIsScannerOpen(false);
-        handleJoinByCode(decodedText);
-      }, () => {
-        // ignore
-      });
-      return () => {
-        scanner.clear().catch(() => {});
-      };
-    }
-  }, [isScannerOpen]);
+
+
 
   const fetchProfile = async () => {
     const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
@@ -913,7 +925,10 @@ export default function Settings({ session }: { session: Session }) {
               </button>
             </div>
             <div className="flex-1 flex items-center justify-center p-4">
-              <div id="qr-reader" className="w-full max-w-sm bg-white rounded-2xl overflow-hidden"></div>
+              <QRScanner onScan={(text) => {
+                setIsScannerOpen(false);
+                handleJoinByCode(text);
+              }} />
             </div>
           </motion.div>
         )}
