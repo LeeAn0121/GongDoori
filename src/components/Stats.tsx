@@ -3,11 +3,15 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieCha
 import { subWeeks, subMonths, isAfter, parseISO, format } from 'date-fns';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
-import { FileText, Table } from 'lucide-react';
+import { FileText, Table, Calculator, X } from 'lucide-react';
+import { Dialog } from '@capacitor/dialog';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Stats({ records }: { records: any[] }) {
   const [chartType, setChartType] = useState<'bar' | 'pie'>('bar');
   const [dateFilter, setDateFilter] = useState<'all' | '2w' | '1m' | '3m' | '6m'>('1m');
+  const [isTaxCalcOpen, setIsTaxCalcOpen] = useState(false);
+  const [taxYear, setTaxYear] = useState(new Date().getFullYear().toString());
 
   const filteredRecords = useMemo(() => {
     const now = new Date();
@@ -192,17 +196,25 @@ export default function Stats({ records }: { records: any[] }) {
       <div className="flex gap-3 no-print">
         <button 
           onClick={exportToExcel}
-          className="flex-1 bg-green-500/10 dark:bg-green-500/20 text-green-600 dark:text-green-400 py-3 rounded-2xl font-extrabold text-sm shadow-sm hover:bg-green-500/20 dark:hover:bg-green-500/30 transition-all flex items-center justify-center gap-2 border border-green-200 dark:border-green-800"
+          className="flex-1 bg-green-500/10 dark:bg-green-500/20 text-green-600 dark:text-green-400 py-3.5 rounded-2xl font-extrabold text-sm shadow-sm hover:bg-green-500/20 dark:hover:bg-green-500/30 transition-all flex items-center justify-center gap-2 border border-green-200 dark:border-green-800"
         >
-          <Table size={18} /> 내역 엑셀 다운로드
+          <Table size={18} /> 엑셀 다운로드
         </button>
         <button 
           onClick={exportToPDF}
-          className="flex-1 bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 py-3 rounded-2xl font-extrabold text-sm shadow-sm hover:bg-blue-500/20 dark:hover:bg-blue-500/30 transition-all flex items-center justify-center gap-2 border border-blue-200 dark:border-blue-800"
+          className="flex-1 bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 py-3.5 rounded-2xl font-extrabold text-sm shadow-sm hover:bg-blue-500/20 dark:hover:bg-blue-500/30 transition-all flex items-center justify-center gap-2 border border-blue-200 dark:border-blue-800"
         >
-          <FileText size={18} /> 내역 PDF 출력
+          <FileText size={18} /> 인건비 명세서 PDF
         </button>
       </div>
+
+      {/* 종합소득세 예상 계산기 Button */}
+      <button 
+        onClick={() => setIsTaxCalcOpen(true)}
+        className="w-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 py-4 rounded-2xl font-extrabold text-[15px] shadow-sm hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-all flex items-center justify-center gap-2 border border-indigo-100 dark:border-indigo-800/50 no-print"
+      >
+        <Calculator size={18} /> 종합소득세 예상 계산기
+      </button>
 
       {/* Basic History Print Layout (Hidden on Screen, Visible on Print) */}
       <div className="print-only hidden bg-white text-black p-8 max-w-[210mm] mx-auto min-h-[297mm]">
@@ -332,6 +344,67 @@ export default function Stats({ records }: { records: any[] }) {
         </div>
       </div>
       
+      {/* 종합소득세 예상 계산기 모달 */}
+      <AnimatePresence>
+        {isTaxCalcOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 dark:bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4 no-print"
+          >
+            <motion.div 
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="bg-white dark:bg-slate-800 w-full max-w-md rounded-t-[2rem] sm:rounded-3xl p-7 shadow-2xl border-t sm:border border-white/20 dark:border-slate-700"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-extrabold text-gray-900 dark:text-slate-50 tracking-tight">
+                  종합소득세 예상 계산기
+                </h3>
+                <button 
+                  onClick={() => setIsTaxCalcOpen(false)}
+                  className="p-2 bg-gray-100 dark:bg-slate-700 rounded-full text-gray-500 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              
+              <div className="flex flex-col gap-5">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">계산 연도</label>
+                  <select 
+                    value={taxYear} 
+                    onChange={(e) => setTaxYear(e.target.value)}
+                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-lg text-gray-900 dark:text-white appearance-none"
+                  >
+                    {[0,1,2].map(offset => {
+                      const y = new Date().getFullYear() - offset;
+                      return <option key={y} value={y}>{y}년</option>
+                    })}
+                  </select>
+                </div>
+
+                <div className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-xl border border-indigo-100 dark:border-indigo-800/50 mt-2">
+                  <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">
+                    * 입력하신 데이터를 바탕으로 대략적인 소득세액을 계산합니다. 실제 신고 시 금액과 차이가 있을 수 있습니다.
+                  </p>
+                </div>
+
+                <button 
+                  onClick={() => { Dialog.alert({ title: '안내', message: '계산기 로직은 준비 중입니다.' }); setIsTaxCalcOpen(false); }}
+                  className="w-full mt-2 bg-indigo-600 dark:bg-indigo-500 text-white font-extrabold text-lg py-4 rounded-xl shadow-md hover:bg-indigo-700 active:scale-[0.98] transition-all cursor-pointer"
+                >
+                  계산하기
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Mobile Screen Data Table */}
       <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] dark:shadow-[0_4px_20px_rgb(0,0,0,0.2)] border border-white/50 dark:border-slate-700/50 overflow-hidden no-print mt-2">
         <div className="p-5 border-b border-gray-100 dark:border-slate-700">
