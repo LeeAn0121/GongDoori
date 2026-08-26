@@ -29,7 +29,7 @@ type WageRecord = {
   color: string
   status: '미수금' | '완료'
   memo: string
-  googleEventId?: string
+  googleEventId?: string | null
 }
 
 import { syncGoogleCalendar } from './googleCalendarSync'
