@@ -17,7 +17,8 @@ ADD COLUMN IF NOT EXISTS expenses integer DEFAULT 0,
 ADD COLUMN IF NOT EXISTS color text DEFAULT '#3B82F6', -- 기본 파란색
 ADD COLUMN IF NOT EXISTS status text DEFAULT '미수금' CHECK (status IN ('미수금', '완료')),
 ADD COLUMN IF NOT EXISTS settlement_date date,
-ADD COLUMN IF NOT EXISTS settlement_memo text;
+ADD COLUMN IF NOT EXISTS settlement_memo text,
+ADD COLUMN IF NOT EXISTS google_event_id text;
 
 -- 3. (선택) 기존 데이터 마이그레이션 방어코드
 -- 만약 기존에 입력된 데이터 중 NULL 값이 있으면 곤란한 필드들을 초기화합니다.

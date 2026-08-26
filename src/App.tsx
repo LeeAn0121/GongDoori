@@ -29,7 +29,10 @@ type WageRecord = {
   color: string
   status: '미수금' | '완료'
   memo: string
+  googleEventId?: string
 }
+
+import { syncGoogleCalendar } from './googleCalendarSync'
 
 type SettlementRecord = {
   id: string
@@ -124,7 +127,8 @@ function MainApp({ session }: { session: Session }) {
         expenses: d.expenses || 0,
         color: d.color || '#3B82F6',
         status: d.status || '미수금',
-        memo: d.memo || ''
+        memo: d.memo || '',
+        googleEventId: d.google_event_id
       })))
     }
 
@@ -165,7 +169,11 @@ function MainApp({ session }: { session: Session }) {
     }
 
     if (editingId) {
-      const { error } = await supabase.from('wage_records').update(recordData).eq('id', editingId)
+      const existingRecord = records.find(r => r.id === editingId);
+      const googleEventId = await syncGoogleCalendar(recordData, 'update', existingRecord?.googleEventId);
+      const updatedData = googleEventId ? { ...recordData, google_event_id: googleEventId } : recordData;
+
+      const { error } = await supabase.from('wage_records').update(updatedData).eq('id', editingId)
       if (error) {
         await Dialog.alert({ title: '오류', message: '수정 중 오류가 발생했습니다: ' + error.message })
         return
@@ -179,10 +187,14 @@ function MainApp({ session }: { session: Session }) {
         poomsu: recordData.poomsu,
         expenses: recordData.expenses,
         color: recordData.color,
-        memo: recordData.memo 
+        memo: recordData.memo,
+        googleEventId
       } : r))
     } else {
-      const { data, error } = await supabase.from('wage_records').insert([recordData]).select()
+      const googleEventId = await syncGoogleCalendar(recordData, 'insert');
+      const insertData = googleEventId ? { ...recordData, google_event_id: googleEventId } : recordData;
+
+      const { data, error } = await supabase.from('wage_records').insert([insertData]).select()
       if (error) {
         await Dialog.alert({ title: '오류', message: '저장 중 오류가 발생했습니다: ' + error.message })
         return
@@ -200,7 +212,8 @@ function MainApp({ session }: { session: Session }) {
           expenses: d.expenses || 0,
           color: d.color || '#3B82F6',
           status: d.status || '미수금',
-          memo: d.memo || '' 
+          memo: d.memo || '',
+          googleEventId: d.google_event_id
         }])
       }
     }
@@ -223,7 +236,10 @@ function MainApp({ session }: { session: Session }) {
       color: '#8B5CF6',
       status: '완료'
     }
-    const { data, error } = await supabase.from('wage_records').insert([recordData]).select()
+    const googleEventId = await syncGoogleCalendar(recordData, 'insert');
+    const insertData = googleEventId ? { ...recordData, google_event_id: googleEventId } : recordData;
+
+    const { data, error } = await supabase.from('wage_records').insert([insertData]).select()
     if (!error && data && data.length > 0) {
       const d = data[0]
       setRecords([...records, {
@@ -237,7 +253,8 @@ function MainApp({ session }: { session: Session }) {
         expenses: d.expenses || 0,
         color: d.color || '#3B82F6',
         status: d.status || '미수금',
-        memo: d.memo || ''
+        memo: d.memo || '',
+        googleEventId: d.google_event_id
       }])
       setInlineMemo('')
     }
@@ -250,10 +267,14 @@ function MainApp({ session }: { session: Session }) {
   const handleDelete = async (id: string) => {
     const { value } = await Dialog.confirm({ title: '삭제', message: '이 내역을 삭제하시겠습니까?' })
     if (value) {
+      const recordToDelete = records.find(r => r.id === id);
       const { error } = await supabase.from('wage_records').delete().eq('id', id)
       if (error) {
         await Dialog.alert({ title: '오류', message: '삭제 중 오류가 발생했습니다.' })
       } else {
+        if (recordToDelete?.googleEventId) {
+          await syncGoogleCalendar(recordToDelete, 'delete', recordToDelete.googleEventId);
+        }
         setRecords(records.filter(r => r.id !== id))
       }
     }
@@ -838,6 +859,12 @@ function App() {
 
     supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
+      if (session?.provider_token) {
+        localStorage.setItem('google_provider_token', session.provider_token)
+      }
+      if (session?.provider_refresh_token) {
+        localStorage.setItem('google_provider_refresh_token', session.provider_refresh_token)
+      }
     })
     
     // Capacitor 모바일 기기 뒤로가기 종료 방지 (안드로이드)

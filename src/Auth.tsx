@@ -60,7 +60,12 @@ export default function Auth() {
         provider: provider as any,
         options: {
           redirectTo: redirectUrl,
-          skipBrowserRedirect: isNative // 모바일에서는 자동 리다이렉트 방지
+          skipBrowserRedirect: isNative, // 모바일에서는 자동 리다이렉트 방지
+          scopes: provider === 'google' ? 'https://www.googleapis.com/auth/calendar.events' : undefined,
+          queryParams: provider === 'google' ? {
+            access_type: 'offline',
+            prompt: 'consent',
+          } : undefined
         }
       })
       

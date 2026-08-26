@@ -8,7 +8,7 @@ import { showToast } from './Toast';
 import { QRCodeCanvas } from 'qrcode.react';
 import { downloadAndShareBase64 } from '../utils/download';
 
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { Html5Qrcode } from 'html5-qrcode';
 
 const QRScanner = ({ onScan }: { onScan: (text: string) => void }) => {
   const onScanRef = useRef(onScan);
@@ -17,34 +17,45 @@ const QRScanner = ({ onScan }: { onScan: (text: string) => void }) => {
   }, [onScan]);
 
   useEffect(() => {
-    const scanner = new Html5QrcodeScanner(
-      "qr-reader", 
-      { fps: 10, qrbox: { width: 250, height: 250 } }, 
-      false
-    );
-    
-    scanner.render(
-      (decodedText) => {
-        scanner.clear();
-        if (onScanRef.current) {
-          onScanRef.current(decodedText);
-        }
-      },
-      () => {
-        // ignore errors for each frame
+    let html5QrCode: Html5Qrcode;
+
+    const startScanner = async () => {
+      try {
+        html5QrCode = new Html5Qrcode("qr-reader");
+        await html5QrCode.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: { width: 250, height: 250 } },
+          (decodedText) => {
+            if (html5QrCode.isScanning) {
+              html5QrCode.stop().then(() => {
+                html5QrCode.clear();
+              }).catch(() => {});
+            }
+            if (onScanRef.current) {
+              onScanRef.current(decodedText);
+            }
+          },
+          () => {} // ignore errors
+        );
+      } catch (err) {
+        console.error("QR Scanner initiation failed: ", err);
       }
-    );
+    };
+
+    startScanner();
 
     return () => {
-      try {
-        scanner.clear().catch(() => {});
-      } catch (e) {
-        // ignore
+      if (html5QrCode && html5QrCode.isScanning) {
+        html5QrCode.stop().then(() => {
+          html5QrCode.clear();
+        }).catch(() => {});
+      } else if (html5QrCode) {
+        html5QrCode.clear();
       }
     };
   }, []);
 
-  return <div id="qr-reader" className="w-full max-w-sm bg-white rounded-2xl overflow-hidden shadow-lg border-none [&_div]:border-none [&_video]:rounded-xl"></div>;
+  return <div id="qr-reader" className="w-full max-w-sm bg-white rounded-2xl overflow-hidden shadow-lg border-none [&_video]:rounded-xl mx-auto"></div>;
 };
 
 export default function Settings({ session }: { session: Session }) {
@@ -269,7 +280,7 @@ export default function Settings({ session }: { session: Session }) {
     fetchTeams();
   };
 
-  const handleQRScanMock = () => {
+  const handleQRScan = () => {
     setIsScannerOpen(true);
   };
 
@@ -350,9 +361,22 @@ export default function Settings({ session }: { session: Session }) {
   };
 
   const handleToggleNotification = async () => {
+    const isCurrentlyEnabled = localStorage.getItem('notificationsEnabled') === 'true';
+
     try {
-      // Use Capacitor LocalNotifications if available (mobile)
       const { LocalNotifications } = await import('@capacitor/local-notifications');
+      
+      if (isCurrentlyEnabled) {
+        // 끄기 로직
+        await LocalNotifications.cancel({ notifications: [{ id: 1 }] });
+        localStorage.setItem('notificationsEnabled', 'false');
+        showToast('알림이 해제되었습니다', 'success');
+        // 강제로 리렌더링 유발
+        window.dispatchEvent(new Event('settingsChanged'));
+        return;
+      }
+
+      // 켜기 로직
       const permStatus = await LocalNotifications.requestPermissions();
       if (permStatus.display === 'granted') {
         await LocalNotifications.schedule({
@@ -374,8 +398,15 @@ export default function Settings({ session }: { session: Session }) {
         showToast('알림 권한이 거부되었습니다', 'error');
       }
     } catch {
-      // Fallback to web Notifications if not running in Capacitor (browser)
+      // Fallback to web Notifications
       if ('Notification' in window) {
+        if (isCurrentlyEnabled) {
+          localStorage.setItem('notificationsEnabled', 'false');
+          showToast('알림이 해제되었습니다', 'success');
+          window.dispatchEvent(new Event('settingsChanged'));
+          return;
+        }
+
         const perm = await Notification.requestPermission();
         if (perm === 'granted') {
           new Notification('공돌이 알림', { body: '웹 시스템 알림이 활성화되었습니다!', icon: '/app_icon_v2.jpg' });
@@ -389,6 +420,7 @@ export default function Settings({ session }: { session: Session }) {
         showToast('알림 설정 중 오류가 발생했습니다', 'error');
       }
     }
+    window.dispatchEvent(new Event('settingsChanged'));
   };
 
   const ListItem = ({ icon: Icon, title, subtitle, value, onClick, highlight = false }: any) => (
@@ -501,7 +533,7 @@ export default function Settings({ session }: { session: Session }) {
           <ListItem icon={Users} title="팀 관리" subtitle="현재 소속된 팀을 관리해요" onClick={() => setIsTeamManageOpen(true)} />
           <ListItem icon={Users} title="팀 만들기" subtitle="팀원들과 현장을 함께 관리해요" onClick={() => setIsCreateTeamOpen(true)} />
           <ListItem icon={KeyRound} title="코드로 참여하기" subtitle="초대 코드를 입력해 팀 가입을 신청해요" onClick={() => setIsJoinTeamOpen(true)} />
-          <ListItem icon={QrCode} title="QR코드 기능" subtitle="QR코드를 스캔하여 팀에 가입해요" onClick={handleQRScanMock} />
+          <ListItem icon={QrCode} title="팀 합류 (QR 스캔)" subtitle="QR코드를 스캔하여 팀에 가입해요" onClick={handleQRScan} />
         </div>
 
         {/* Account Actions */}
